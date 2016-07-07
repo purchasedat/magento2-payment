@@ -1,0 +1,17 @@
+<?php
+/**
+ * form.phtml
+ *
+ * @author     Árpád Tóth
+ * @category   Purchasedat
+ * @package    Purchasedat
+ */
+?>
+<fieldset class="form-list">
+    <?php $_code=$this->getMethodCode() ?>
+    <ul id="payment_form_<?php echo $_code ?>" style="display:none">
+        <li>
+            <?php echo $this->__('You will be redirected to the Purchased.at website when you place an order.') ?>
+        </li>
+    </ul>
+</fieldset>

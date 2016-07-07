@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<!-- 
+config.xml
+
+@author     Árpád Tóth
+@category   Purchasedat
+@package    Purchasedat
+-->
+<config>
+	<modules>
+		<Purchasedat_Purchasedat>
+			<active>true</active>
+			<codePool>community</codePool>
+		</Purchasedat_Purchasedat>
+	</modules>
+</config>
