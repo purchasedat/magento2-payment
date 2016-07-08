@@ -7,6 +7,11 @@
  * @package    Purchasedat_Purchasedat
  */
 
+require_once(Mage::getBaseDir('lib') . DS . 'purchasedat' . DS . 'purchasedat_sdk.php');
+
+use \PurchasedAt\Purchase\CheckoutItem;
+use \PurchasedAt\PurchaseOptions;
+
 /**
  * Purchasedat_Purchasedat_Model_Standard
  */
@@ -107,71 +112,36 @@ class Purchasedat_Purchasedat_Model_Standard extends Mage_Payment_Model_Method_A
         $order = Mage::getModel( 'sales/order' )->loadByIncrementId( $orderIncrementId );
         $description = '';
 
-       $transaction_mode = $this->getConfigData('trans_mode');
-       $api_key = $this->getConfigData('api_key');   
+        $transaction_mode = $this->getConfigData('trans_mode');
+        $api_key = $this->getConfigData('api_key');   
 
-        if($transaction_mode == 'test')
-        {
-            $txnid = $orderIncrementId +28800;
-        } else
-        {
-           $txnid = $orderIncrementId;
-        } 
-
-        // Create description
+		$customer_id = $order->getData('customer_id');      
+		
+		$customer = Mage::getModel('customer/customer')->load($customer_id);
+       
+		$options = new PurchaseOptions($customer->getEmail());
+		if ($transaction_mode == "test") {
+			$options->setTestEnabled(true);
+		}
+		$options->setRedirectUrl($this->getOrderPlaceRedirectUrl());		
+		
+        // Create items list
         foreach( $order->getAllItems() as $items )
         {
             $totalPrice = $this->getNumberFormat( $items->getQtyOrdered() * $items->getPrice() );
-
-            $description .=
-                $this->getNumberFormat( $items->getQtyOrdered() ) .
-                ' x '. $items->getName() .
-                ' @ '. $order->getOrderCurrencyCode() . $this->getNumberFormat( $items->getPrice() ) .
-                ' = '. $order->getOrderCurrencyCode() . $totalPrice .'; ';
+            $options->withCheckout()->addItem(CheckoutItem::of($items->getQtyOrdered(), $items->getSku()))
+            						->addName(Mage::app()->getLocale()->getLocaleCode(), $items->getName())
+            						->addPrice($order->getOrderCurrencyCode(), $this->getNumberFormat( $items->getPrice())) ;
         }
-        $description .= 'Shipping = '. $order->getOrderCurrencyCode() . $this->getNumberFormat( $order->getShippingAmount() ).';';
-        $description .= 'Total = '. $order->getOrderCurrencyCode() . $this->getTotalAmount( $order ).';';      
-
-        $customer_id = $order->getData('customer_id');      
-
-        $customer = Mage::getModel('customer/customer')->load($customer_id);
-        $billingaddress = $customer->getPrimaryBillingAddress()->getData();    
-
-        $countryName = Mage::getModel('directory/country')->load($billingaddress['country_id'])->getName();   
-
-       
-
-        $getAmount = file_get_contents("http://www.google.com/finance/converter?a=".$this->getTotalAmount( $order )."&from=".$order->getData('base_currency_code')."&to=EUR"); 
+        $options->withCheckout()->addTotal($order->getOrderCurrencyCode(), $totalPrice);
+        
+/*        $getAmount = file_get_contents("http://www.google.com/finance/converter?a=".$this->getTotalAmount( $order )."&from=".$order->getData('base_currency_code')."&to=EUR"); 
 
         $getAmount = explode("<span class=bld>",$getAmount);
         $getAmount = explode("</span>",$getAmount[1]);
         $convertedAmount = preg_replace("/[^0-9\.]/", null, $getAmount[0]);
         $calculatedAmount_INR = round($convertedAmount,2);       
-        
-        // Construct data for the form
-        $data = array(
-            // Merchant details
-            'key' => $api_key,
-            'txnid' => $txnid,
-            'amount' => $calculatedAmount_INR,
-            'productinfo' => 'Product Information',
-
-             // Buyer details
-            'firstname' => $order->getData('customer_firstname'),          
-            'Lastname' =>  $order->getData('customer_lastname'),
-            'City' => $billingaddress['city'],
-            'State' => $billingaddress['region'],             
-            'Country' => $countryName,
-            'Zipcode' => $billingaddress['postcode'],          
-            'email' => $order->getData('customer_email'),            
-            'phone' => $billingaddress['telephone'],
-            'surl' => $this->getSuccessUrl(),
-            'furl' => $this->getfailureUrl(),
-            'curl' => $this->getCancelUrl(),
-        );
-
-           $data['Hash']         =   strtolower(hash('sha512', $api_key.'|'.$txnid.'|'.$data['amount'].'|'.
- $data['productinfo'].'|'.$data['firstname'].'|'.$data['email'].'|||||||||||'));   
+*/
 
       if(PB_DEBUG) {
 

@@ -9,7 +9,7 @@
 
 // Include the purchasedat common file
 define( 'PB_DEBUG', ( Mage::getStoreConfig( 'payment/purchasedat/debugging' ) ? true : false ) );
-include_once(Mage::getBaseDir('code') . DS . 'community' . DS . 'Purchasedat' . DS . 'Purchasedat' . DS . 'purchasedat_common.inc');
+include_once( dirname( __FILE__ ) .'/../purchasedat_common.inc' );
  
 /**
  * Purchasedat_RedirectController

@@ -9,6 +9,9 @@
 ?>
 <fieldset class="form-list">
     <?php $_code=$this->getMethodCode() ?>
+	<button data-purchasedat-widget-open>Buy</button>
+	<?php echo \PurchasedAt\renderScript($apiKey, $options); ?>
+    
     <ul id="payment_form_<?php echo $_code ?>" style="display:none">
         <li>
             <?php echo $this->__('You will be redirected to the Purchased.at website when you place an order.') ?>
