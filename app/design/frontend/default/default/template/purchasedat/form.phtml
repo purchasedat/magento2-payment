@@ -8,9 +8,9 @@
  */
 ?>
 <fieldset class="form-list">
-    <?php $_code=$this->getMethodCode() ?>
-	<button data-purchasedat-widget-open>Buy</button>
-	<?php echo \PurchasedAt\renderScript($apiKey, $options); ?>
+    <?php 
+    	$_code=$this->getMethodCode() ;
+    ?>
     
     <ul id="payment_form_<?php echo $_code ?>" style="display:none">
         <li>

@@ -104,7 +104,7 @@ class Purchasedat_Purchasedat_Model_Standard extends Mage_Payment_Model_Method_A
         $store_info = Mage::app()->getStore();
         return $store_info->getName();
     }
-  
+    
     public function getStandardCheckoutFormFields()
     {
         // Variable initialization
@@ -114,7 +114,7 @@ class Purchasedat_Purchasedat_Model_Standard extends Mage_Payment_Model_Method_A
 
         $transaction_mode = $this->getConfigData('trans_mode');
         $api_key = $this->getConfigData('api_key');   
-
+        
 		$customer_id = $order->getData('customer_id');      
 		
 		$customer = Mage::getModel('customer/customer')->load($customer_id);
@@ -124,17 +124,35 @@ class Purchasedat_Purchasedat_Model_Standard extends Mage_Payment_Model_Method_A
 			$options->setTestEnabled(true);
 		}
 		$options->setRedirectUrl($this->getOrderPlaceRedirectUrl());		
-		
-        // Create items list
+		$language = substr(Mage::app()->getLocale()->getLocaleCode(), 0, strpos(Mage::app()->getLocale()->getLocaleCode(), "_")) ;
+		$checkout = null ;
+        // Create items list        
         foreach( $order->getAllItems() as $items )
         {
-            $totalPrice = $this->getNumberFormat( $items->getQtyOrdered() * $items->getPrice() );
-            $options->withCheckout()->addItem(CheckoutItem::of($items->getQtyOrdered(), $items->getSku()))
-            						->addName(Mage::app()->getLocale()->getLocaleCode(), $items->getName())
-            						->addPrice($order->getOrderCurrencyCode(), $this->getNumberFormat( $items->getPrice())) ;
+        	pblog( round($items->getQtyOrdered()) . "x". $this->getNumberFormat( $items->getPrice()) . " " . $order->getOrderCurrencyCode() . "-" . $items->getName() . "(" . $language . ")" );
+        	if ($checkout == null) {
+				$checkout = $options->withCheckout()->addItem(CheckoutItem::of($items->getQtyOrdered(), $items->getSku())
+										->addName($language, $items->getName())
+										->addPrice($order->getOrderCurrencyCode(), $this->getNumberFormat( $items->getPrice()))
+										) ;
+			}
+			else
+			{
+				$checkout->addItem(CheckoutItem::of($items->getQtyOrdered(), $items->getSku())
+										->addName($language, $items->getName())
+										->addPrice($order->getOrderCurrencyCode(), $this->getNumberFormat( $items->getPrice()))
+										) ;
+			}
         }
-        $options->withCheckout()->addTotal($order->getOrderCurrencyCode(), $totalPrice);
-        
+        if ($order->getShippingAmount() > 0) {
+            $checkout->addItem(CheckoutItem::of(1, "SHIPPING")
+            						->addName($language, "Shipping")
+            						->addPrice($order->getOrderCurrencyCode(), $this->getNumberFormat( $order->getShippingAmount()))
+            						) ;     
+        }
+        $checkout->addTotal($order->getOrderCurrencyCode(), $this->getTotalAmount( $order ));
+        pblog( print_r($options, true) );	
+        $data = array("apiKey"=>$api_key, "options"=>$options) ;      
 /*        $getAmount = file_get_contents("http://www.google.com/finance/converter?a=".$this->getTotalAmount( $order )."&from=".$order->getData('base_currency_code')."&to=EUR"); 
 
         $getAmount = explode("<span class=bld>",$getAmount);

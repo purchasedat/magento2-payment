@@ -68,7 +68,7 @@ class Purchasedat_Purchasedat_RedirectController extends Mage_Core_Controller_Fr
     public function redirectAction()
     {
 
-        pblog( 'Redirecting to purchasedat' );
+        pblog( 'Redirecting to purchasedat - aaa' );
         
 		try
         {
@@ -94,12 +94,12 @@ class Purchasedat_Purchasedat_RedirectController extends Mage_Core_Controller_Fr
                 $session->setpurchasedatQuoteId( $session->getQuoteId() );
                 $session->setpurchasedatSuccessQuoteId( $session->getLastSuccessQuoteId() );
                 $session->setpurchasedatRealOrderId( $session->getLastRealOrderId() );
-                $session->getQuote()->setIsActive( false )->save();                
+                $session->getQuote()->setIsActive( false )->save();
                 $session->clear();
             }
 
-//            pblog( $this->getLayout()->createBlock( 'purchasedat/request' )->toHtml() );			
 			$r = $this->getResponse()->setBody( $this->getLayout()->createBlock( 'purchasedat/request' )->toHtml() );  
+
         
 	        $session->unsQuoteId();
             
@@ -107,12 +107,10 @@ class Purchasedat_Purchasedat_RedirectController extends Mage_Core_Controller_Fr
         }
         catch( Mage_Core_Exception $e )
         {
-        	pblog( $e->getMessage() ); 
-            $this->_getCheckout()->addError( "ccc:" . $e->getMessage() );
+            $this->_getCheckout()->addError( $e->getMessage() );
         }
         catch( Exception $e )
         {
-        	pblog( "ddd: " . $e->getMessage() ); 
             Mage::logException($e);
         }       
         
