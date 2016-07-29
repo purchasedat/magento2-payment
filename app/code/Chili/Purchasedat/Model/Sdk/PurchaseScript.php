@@ -39,10 +39,7 @@ namespace Chili\Purchasedat\Model\Sdk {
          */
         public static function render($apiKey, $purchaseOptions, $target = null, $jwtOptions = null)
         {
-            $fp = fopen('debug.txt', 'w');
-            fwrite($fp, print_r($purchaseOptions, true));
-            fclose($fp);
-            
+
             $token = self::token($apiKey, $purchaseOptions, $jwtOptions);
             $widgetUrl = $purchaseOptions->getWidgetUrl();
             if (!isset($target) || !$target) {

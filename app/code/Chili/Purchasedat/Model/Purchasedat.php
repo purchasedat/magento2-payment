@@ -14,6 +14,10 @@ use Magento\Sales\Model\ResourceModel\Order\Payment\Transaction\CollectionFactor
 use Magento\Sales\Model\Order\Payment\Transaction as PaymentTransaction;
 use Magento\Payment\Model\InfoInterface;
 use Magento\Framework\App;
+use Magento\Quote\Model\Quote;
+use Magento\Checkout\Model\Cart;
+use Magento\Customer\Helper\Session\CurrentCustomer;
+use Magento\Store\Model\StoreManagerInterface;
 
 
 /**
@@ -32,7 +36,25 @@ class Purchasedat extends \Magento\Payment\Model\Method\AbstractMethod
      *
      * @var string
      */
-    protected $_code = 'purchasedat';
+    const PAYMENT_METHOD_PURCHASEDAT_CODE = 'purchasedat';
+    protected $_code = self::PAYMENT_METHOD_PURCHASEDAT_CODE;
+
+    /**
+     * @var Quote|null
+     */
+    protected $_quote = null;
+
+
+    /**
+     *
+     * @var \Magento\Customer\Model\Session
+     */
+    protected $_customerSession;
+
+    /**
+     * @var \Magento\Checkout\Model\Session
+     */
+    protected $_checkoutSession;
 
     /**
      * Availability option
@@ -81,6 +103,26 @@ class Purchasedat extends \Magento\Payment\Model\Method\AbstractMethod
      * @var \Magento\Framework\App\RequestInterface
      */
     protected $request;
+
+    /**
+     * @var \Magento\Checkout\Model\Cart
+     */
+    protected $cart ;
+
+    /**
+     * @var \Magento\Checkout\Model\Session
+     */
+    protected $session ;
+
+    /**
+     * @var Magento\Customer\Helper\Session\CurrentCustomer
+     */
+    protected $current_customer ;
+
+    /**
+     * @var Magento\Store\Model\StoreManagerInterface
+     */
+    protected $storemanager ;
 
     /**
      * @var TransactionCollectionFactory
@@ -138,12 +180,20 @@ class Purchasedat extends \Magento\Payment\Model\Method\AbstractMethod
         \Magento\Framework\Module\ModuleListInterface $moduleList,
         \Magento\Framework\Stdlib\DateTime\TimezoneInterface $localeDate,
         \Magento\Sales\Model\OrderFactory $orderFactory,
+        \Magento\Checkout\Model\Cart $cart,
+        \Magento\Checkout\Model\Session $session,
+        \Magento\Store\Model\StoreManagerInterface $storemanager,
+        \Magento\Customer\Helper\Session\CurrentCustomer $currentCustomer,
         \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
 //        \Chili\PurchasedAt\Purchase\CheckoutItem $checkoutItem = null,
 //        \Chili\PurchasedAt\PurchaseOptions $purchaseOptions = null,
         array $data = []){
         $this->orderFactory = $orderFactory;
+        $this->cart = $cart ;
+        $this->session = $session ;
+        $this->current_customer = $currentCustomer ;
+        $this->storemanager = $storemanager ;
         parent::__construct($context,
             $registry,
             $extensionFactory,
@@ -157,6 +207,7 @@ class Purchasedat extends \Magento\Payment\Model\Method\AbstractMethod
 //            $purchaseOptions,
             $data);
     }
+
 
     //@param \Magento\Framework\Object|\Magento\Payment\Model\InfoInterface $payment
     public function getAmount($orderId)//\Magento\Framework\Object $payment)
@@ -222,13 +273,14 @@ class Purchasedat extends \Magento\Payment\Model\Method\AbstractMethod
         $stateObject->setIsNotified(false);
     }
 
-    public function getPostData($orderId)
+    public function getPostData($Quote)
     {
-        $order = $this->getOrder($orderId);
+        $grand_total = $Quote['base_grand_total'];
+        $subtotal = $Quote['subtotal'] ;
 
-        $api_key = $this->getConfigData('api_key');
+        $api_key = $this->getConfigData('api_key') ;
 
-        $customer_id = $order->getCustomerId();
+        $customer_id = $this->current_customer->getCustomerId() ;
 
         $customer = $this->getCustomerInfo($customer_id) ;
 
@@ -241,34 +293,58 @@ class Purchasedat extends \Magento\Payment\Model\Method\AbstractMethod
         $om = \Magento\Framework\App\ObjectManager::getInstance();
         $resolver = $om->get('Magento\Framework\Locale\Resolver');
         $language = substr($resolver->getLocale(), 0, strpos($resolver->getLocale(), "_")) ;
+        $currency_code = $this->storemanager->getStore()->getCurrentCurrency()->getCode() ;
         $checkout = null ;
+//        $fp = fopen('data.txt', 'w');
+//        fwrite($fp, $subtotal);
+//        fclose($fp);
+
+        $shipping_rate = $grand_total - $subtotal ;
         // Create items list
-        foreach( $order->getAllItems() as $items )
+        foreach( $this->session->getQuote()->getAllItems() as $items)
         {
             if ($checkout == null) {
-                $checkout = $options->withCheckout()->addItem(Sdk\CheckoutItem::of($items->getQtyOrdered(), $items->getSku())
+                $checkout = $options->withCheckout()->addItem(Sdk\CheckoutItem::of((int)$items->getQty(), $items->getSku())
                     ->addName($language, $items->getName())
-                    ->addPrice($order->getOrderCurrencyCode(), $this->getNumberFormat( $items->getPrice()))
+                    ->addPrice($currency_code, $this->getNumberFormat( $items->getPrice()))
                 ) ;
             }
             else
             {
-                $checkout->addItem(Sdk\CheckoutItem::of($items->getQtyOrdered(), $items->getSku())
+                $checkout->addItem(Sdk\CheckoutItem::of((int)$items->getQty(), $items->getSku())
                     ->addName($language, $items->getName())
-                    ->addPrice($order->getOrderCurrencyCode(), $this->getNumberFormat( $items->getPrice()))
+                    ->addPrice($currency_code, $this->getNumberFormat( $items->getPrice()))
                 ) ;
             }
         }
-        if ($order->getShippingAmount() > 0) {
+        if ($shipping_rate > 0) {
             $checkout->addItem(Sdk\CheckoutItem::of(1, "SHIPPING")
                 ->addName($language, "Shipping")
-                ->addPrice($order->getOrderCurrencyCode(), $this->getNumberFormat( $order->getShippingAmount()))
+                ->addPrice($currency_code, $this->getNumberFormat($shipping_rate))
             ) ;
         }
-        $checkout->addTotal($order->getOrderCurrencyCode(), $order->getGrandTotal());
+        $checkout->addTotal($currency_code, $grand_total);
         $data = array("apiKey"=>$api_key, "options"=>$options) ;
 
+        $fp = fopen('data.txt', 'w');
+//        fwrite($fp, $api_key);
+        fwrite($fp, print_r($options, true));
+        fclose($fp);
+
         return $data;
+    }
+
+    public function getPayButton()
+    {
+        $Quote= $this->cart->getQuote()->getData();
+        $data = $this->getPostData($Quote) ;
+        $paybutton_code = self::renderScript($data["apiKey"], $data["options"]) ;
+        return $paybutton_code;
+    }
+
+    public function getMailingAddress()
+    {
+        return "levelezési cím" ;   //E-mail cím mehet itt mondjuk
     }
 
     public function process($responseData)

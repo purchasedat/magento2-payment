@@ -26,19 +26,18 @@
                 <!-- ko template: getTemplate() --><!-- /ko -->
             <!--/ko-->
         </div>
-        <div>
-            <input type="hidden" id="purchased_at_params" data-bind="value: getPayButtonParams()">
-            <input type="hidden" id="purchased_at_target" data-bind="value: getPayButtonTarget()">
-        </div>
         <div class="actions-toolbar">
             <div class="primary">
                 <button class="action primary checkout"
-                        id="purchasedat_submit"
                         type="submit"
-                        data-bind="event: { mousedown: preparePurchasedat }, click: continueToPurchasedat, enable: (getCode() == isChecked())"
-                        data-purchasedat-widget-open="data-purchasedat-widget-open"
+                        data-bind="
+                        click: placeOrder,
+                        attr: {title: $t('Place Order')},
+                        css: {disabled: !isPlaceOrderActionAllowed()},
+                        enable: (getCode() == isChecked())
+                        "
                         disabled>
-                    <span data-bind="i18n: 'Continue to Purchased.at'"></span>
+                    <span data-bind="i18n: 'Place Order'"></span>
                 </button>
             </div>
         </div>
