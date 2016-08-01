@@ -1,0 +1,5 @@
+<?php
+$asset_repository = $this->assetRepository;
+$js_asset = $asset_repository->createAsset('Chili_Purchasedat/js/purchasedat.js');
+?>
+<script src="<?php echo $js_asset->getUrl(); ?>"></script>

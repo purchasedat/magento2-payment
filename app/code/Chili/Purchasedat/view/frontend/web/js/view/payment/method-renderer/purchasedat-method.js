@@ -26,14 +26,6 @@ define(
                 return window.checkoutConfig.payment.purchasedat.mailingAddress;
             },
 
-            getPayButton: function() {
-                return window.checkoutConfig.payment.purchasedat.payButton;
-            },
-
-            getPayButtonWidget: function() {
-                return window.checkoutConfig.payment.purchasedat.widgetUrl;
-            },
-
             getPayButtonParams: function() {
                 return window.checkoutConfig.payment.purchasedat.params;
             },
@@ -42,29 +34,36 @@ define(
                 return window.checkoutConfig.payment.purchasedat.target;
             },
 
-            /** Redirect to paypal */
+            /** Redirect to purchased.at */
             continueToPurchasedat: function () {
                 if (additionalValidators.validate()) {
                     customerData.invalidate(['cart']);
-/*                            $.mage.redirect(
-                        window.checkoutConfig.payment.purchasedat.redirectUrl[quote.paymentMethod().method]
-                    );*/
-/*                    var params = $("#purchased_at_params").val() ;
-                    var target_string = $("#purchased_at_target").val() ;
-                    var obj = JSON.stringify({ token: params, target: target_string }) ;
-                    purchased_at.auto(obj) ;*/
+                    this.selectPaymentMethod();
                     return false;
                 }
             },
 
             preparePurchasedat: function () {
-                var params = $("#purchased_at_params").val() ;
-                var target_string = $("#purchased_at_target").val() ;
-                var params_array = {token: params, target: target_string}
-                purchased_at.auto(params_array) ;
+                if ($("#purchasedat_submit").is(":visible")) {
+                    var params = window.checkoutConfig.payment.purchasedat.params;
+                    var target_string = window.checkoutConfig.payment.purchasedat.target;
+                    var params_array = {token: params, target: target_string}
+                    purchased_at.auto(params_array) ;
+                }
+                else {
+                    $.ajax({
+                        url: window.checkoutConfig.payment.purchasedat.ajax_url,
+                        cache: false,
+                        dataType: 'json'
+                    }).done(function (data) {
+                        var params = data.token;
+                        var target_string = data.target;
+                        var params_array = {token: params, target: target_string}
+                        purchased_at.auto(params_array);
+                    });
+                }
                 return false;
             }
-
         });
     }
 );

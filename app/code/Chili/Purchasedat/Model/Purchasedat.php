@@ -145,6 +145,16 @@ class Purchasedat extends \Magento\Payment\Model\Method\AbstractMethod
     protected $orderRepository;
 
     /**
+     * @var \Magento\Quote\Api\CartRepositoryInterface $quoteRepository
+     */
+    protected $quoteRepository;
+
+    /**
+     * @var \Magento\Quote\Api\CartManagementInterface $quoteManagement
+     */
+    protected $quoteManagement;
+
+    /**
      * Test mode or live
      *
      * @var string
@@ -171,6 +181,7 @@ class Purchasedat extends \Magento\Payment\Model\Method\AbstractMethod
      */
     public function __construct(
         \Magento\Framework\Model\Context $context,
+        \Magento\Checkout\Model\Session $checkoutSession,
         \Magento\Framework\Registry $registry,
         \Magento\Framework\Api\ExtensionAttributesFactory $extensionFactory,
         \Magento\Framework\Api\AttributeValueFactory $customAttributeFactory,
@@ -184,16 +195,19 @@ class Purchasedat extends \Magento\Payment\Model\Method\AbstractMethod
         \Magento\Checkout\Model\Session $session,
         \Magento\Store\Model\StoreManagerInterface $storemanager,
         \Magento\Customer\Helper\Session\CurrentCustomer $currentCustomer,
+        \Magento\Quote\Api\CartRepositoryInterface $quoteRepository,
+        \Magento\Quote\Api\CartManagementInterface $quoteManagement,
         \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
-//        \Chili\PurchasedAt\Purchase\CheckoutItem $checkoutItem = null,
-//        \Chili\PurchasedAt\PurchaseOptions $purchaseOptions = null,
         array $data = []){
+        $this->_checkoutSession = $checkoutSession;
         $this->orderFactory = $orderFactory;
         $this->cart = $cart ;
         $this->session = $session ;
         $this->current_customer = $currentCustomer ;
         $this->storemanager = $storemanager ;
+        $this->quoteRepository = $quoteRepository ;
+        $this->quoteManagement = $quoteManagement;
         parent::__construct($context,
             $registry,
             $extensionFactory,
@@ -203,8 +217,6 @@ class Purchasedat extends \Magento\Payment\Model\Method\AbstractMethod
             $logger,
             $resource,
             $resourceCollection,
-//            $checkoutItem,
-//            $purchaseOptions,
             $data);
     }
 
@@ -273,31 +285,30 @@ class Purchasedat extends \Magento\Payment\Model\Method\AbstractMethod
         $stateObject->setIsNotified(false);
     }
 
-    public function getPostData($Quote)
+
+    public function getPostData($quote)
     {
-        $grand_total = $Quote['base_grand_total'];
-        $subtotal = $Quote['subtotal'] ;
-
+        $quote->reserveOrderId();
+        $this->quoteRepository->save($quote);
+        $quote->collectTotals();
+        $quote->save();
+        $quote_data = $quote->getData() ;
+        $grand_total = $quote_data['grand_total'];
+        $subtotal = $quote_data['subtotal_with_discount'] ;
         $api_key = $this->getConfigData('api_key') ;
-
         $customer_id = $this->current_customer->getCustomerId() ;
-
         $customer = $this->getCustomerInfo($customer_id) ;
-
         $options = new Sdk\PurchaseOptions($customer->getEmail()) ;
-
         if ($this->_test == "test") {
             $options->setTestEnabled(true);
         }
-        $options->setRedirectUrl($this->getOrderPlaceRedirectUrl());
+        $baseUrl = $this->storemanager->getStore()->getBaseUrl();
+        $options->setRedirectUrl($baseUrl . 'purchasedat/payment/finish') ;
         $om = \Magento\Framework\App\ObjectManager::getInstance();
         $resolver = $om->get('Magento\Framework\Locale\Resolver');
         $language = substr($resolver->getLocale(), 0, strpos($resolver->getLocale(), "_")) ;
-        $currency_code = $this->storemanager->getStore()->getCurrentCurrency()->getCode() ;
+        $currency_code = $quote_data['global_currency_code'] ;
         $checkout = null ;
-//        $fp = fopen('data.txt', 'w');
-//        fwrite($fp, $subtotal);
-//        fclose($fp);
 
         $shipping_rate = $grand_total - $subtotal ;
         // Create items list
@@ -326,18 +337,13 @@ class Purchasedat extends \Magento\Payment\Model\Method\AbstractMethod
         $checkout->addTotal($currency_code, $grand_total);
         $data = array("apiKey"=>$api_key, "options"=>$options) ;
 
-        $fp = fopen('data.txt', 'w');
-//        fwrite($fp, $api_key);
-        fwrite($fp, print_r($options, true));
-        fclose($fp);
-
         return $data;
     }
 
     public function getPayButton()
     {
-        $Quote= $this->cart->getQuote()->getData();
-        $data = $this->getPostData($Quote) ;
+        $quote= $this->cart->getQuote();
+        $data = $this->getPostData($quote) ;
         $paybutton_code = self::renderScript($data["apiKey"], $data["options"]) ;
         return $paybutton_code;
     }
