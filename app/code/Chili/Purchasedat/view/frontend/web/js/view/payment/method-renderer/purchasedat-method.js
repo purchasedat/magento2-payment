@@ -22,8 +22,8 @@ define(
             },
 
             /** Returns send check to info */
-            getMailingAddress: function() {
-                return window.checkoutConfig.payment.purchasedat.mailingAddress;
+            getInstructions: function() {
+                return window.checkoutConfig.payment.purchasedat.instructions;
             },
 
             getPayButtonParams: function() {

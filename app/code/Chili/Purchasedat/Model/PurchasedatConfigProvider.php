@@ -45,7 +45,7 @@ class PurchasedatConfigProvider implements ConfigProviderInterface
         return [
             'payment' => [
                 'purchasedat' => [
-                    'mailingAddress' => $this-> getMailingAddress(),
+                    'instructions' => $this->method->getInstructions(),
                     'params' => $this->getPayButtonParams(),
                     'target' => $this->getPayButtonTarget(),
                     'ajax_url' => $this->getAjaxCallUrl()
@@ -53,9 +53,9 @@ class PurchasedatConfigProvider implements ConfigProviderInterface
             ],
         ];
     }
-    protected function getMailingAddress()
+    protected function getInstructions()
     {
-        $this->method->getMailingAddress();
+        return $this->method->getConfig("instructions");
     }
 
     protected function getAjaxCallUrl() {
@@ -67,7 +67,7 @@ class PurchasedatConfigProvider implements ConfigProviderInterface
             $this->widget_params = $matches[1] ;
         }
         else {
-            $this->widget_params = "nincs parameter";
+            $this->widget_params = "null";
         }
         return $this->widget_params ;
     }
