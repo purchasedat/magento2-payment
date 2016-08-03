@@ -286,65 +286,80 @@ class Purchasedat extends \Magento\Payment\Model\Method\AbstractMethod
     }
 
 
-    public function getPostData($quote)
+    public function getPostData($quote, $guest_email = "")
     {
         $quote->reserveOrderId();
         $this->quoteRepository->save($quote);
         $quote->collectTotals();
         $quote->save();
-        $quote_data = $quote->getData() ;
-        $grand_total = $quote_data['grand_total'];
-        $subtotal = $quote_data['subtotal_with_discount'] ;
-        $api_key = $this->getConfigData('api_key') ;
-        $customer_id = $this->current_customer->getCustomerId() ;
-        $customer = $this->getCustomerInfo($customer_id) ;
-        $options = new Sdk\PurchaseOptions($customer->getEmail()) ;
-        if ($this->_test == "test") {
-            $options->setTestEnabled(true);
-        }
-        $baseUrl = $this->storemanager->getStore()->getBaseUrl();
-        $options->setRedirectUrl($baseUrl . 'purchasedat/payment/finish') ;
-        $om = \Magento\Framework\App\ObjectManager::getInstance();
-        $resolver = $om->get('Magento\Framework\Locale\Resolver');
-        $language = substr($resolver->getLocale(), 0, strpos($resolver->getLocale(), "_")) ;
-        $currency_code = $quote_data['global_currency_code'] ;
-        $checkout = null ;
-
-        $shipping_rate = $grand_total - $subtotal ;
-        // Create items list
-        foreach( $this->session->getQuote()->getAllItems() as $items)
-        {
-            if ($checkout == null) {
-                $checkout = $options->withCheckout()->addItem(Sdk\CheckoutItem::of((int)$items->getQty(), $items->getSku())
-                    ->addName($language, $items->getName())
-                    ->addPrice($currency_code, $this->getNumberFormat( $items->getPrice()))
-                ) ;
+        $customer_id = $this->current_customer->getCustomerId();
+        $customer = $this->getCustomerInfo($customer_id);
+/*        $fp = fopen('email.txt', 'w');
+        fwrite($fp, "aaa: " . print_r(get_object_vars($quote->getBillingAddress()), true));
+        fclose($fp);*/
+        if ($quote->getGrandTotal() && ($customer->getEmail() || $guest_email != "")) {
+            $quote_data = $quote->getData();
+            $grand_total = $quote_data['grand_total'];
+            $subtotal = $quote_data['subtotal_with_discount'];
+            $api_key = $this->getConfigData('api_key');
+            if ($customer->getEmail()) {
+                $customer_email = $customer->getEmail() ;
             }
             else
             {
-                $checkout->addItem(Sdk\CheckoutItem::of((int)$items->getQty(), $items->getSku())
-                    ->addName($language, $items->getName())
-                    ->addPrice($currency_code, $this->getNumberFormat( $items->getPrice()))
-                ) ;
+                $customer_email = $guest_email ;
             }
-        }
-        if ($shipping_rate > 0) {
-            $checkout->addItem(Sdk\CheckoutItem::of(1, "SHIPPING")
-                ->addName($language, "Shipping")
-                ->addPrice($currency_code, $this->getNumberFormat($shipping_rate))
-            ) ;
-        }
-        $checkout->addTotal($currency_code, $grand_total);
-        $data = array("apiKey"=>$api_key, "options"=>$options) ;
+            $options = new Sdk\PurchaseOptions($customer_email);
+            if ($this->_test == "test") {
+                $options->setTestEnabled(true);
+            }
+            $baseUrl = $this->storemanager->getStore()->getBaseUrl();
+            $options->setRedirectUrl($baseUrl . 'purchasedat/payment/finish');
+            $om = \Magento\Framework\App\ObjectManager::getInstance();
+            $resolver = $om->get('Magento\Framework\Locale\Resolver');
+            $language = substr($resolver->getLocale(), 0, strpos($resolver->getLocale(), "_"));
+            $currency_code = $quote_data['global_currency_code'];
+            $checkout = null;
 
+            $shipping_rate = $grand_total - $subtotal;
+            // Create items list
+            foreach ($this->session->getQuote()->getAllItems() as $items) {
+                if ($checkout == null) {
+                    $checkout = $options->withCheckout()->addItem(Sdk\CheckoutItem::of((int)$items->getQty(), $items->getSku())
+                        ->addName($language, $items->getName())
+                        ->addPrice($currency_code, $this->getNumberFormat($items->getPrice()))
+                    );
+                } else {
+                    $checkout->addItem(Sdk\CheckoutItem::of((int)$items->getQty(), $items->getSku())
+                        ->addName($language, $items->getName())
+                        ->addPrice($currency_code, $this->getNumberFormat($items->getPrice()))
+                    );
+                }
+            }
+            if ($shipping_rate > 0) {
+                $checkout->addItem(Sdk\CheckoutItem::of(1, "SHIPPING")
+                    ->addName($language, "Shipping")
+                    ->addPrice($currency_code, $this->getNumberFormat($shipping_rate))
+                );
+            }
+            $checkout->addTotal($currency_code, $grand_total);
+            $data = array("apiKey" => $api_key, "options" => $options);
+        }
+        else
+        {
+            $data = false ;
+        }
         return $data;
     }
 
     public function getPayButton()
     {
+        $paybutton_code = "" ;
         $quote= $this->cart->getQuote();
         $data = $this->getPostData($quote) ;
-        $paybutton_code = self::renderScript($data["apiKey"], $data["options"]) ;
+        if ($data) {
+            $paybutton_code = self::renderScript($data["apiKey"], $data["options"]);
+        }
         return $paybutton_code;
     }
     

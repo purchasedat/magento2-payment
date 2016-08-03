@@ -23,6 +23,7 @@ define(
 
             /** Returns send check to info */
             getInstructions: function() {
+                this.preparePurchasedat();
                 return window.checkoutConfig.payment.purchasedat.instructions;
             },
 
@@ -32,6 +33,11 @@ define(
 
             getPayButtonTarget: function() {
                 return window.checkoutConfig.payment.purchasedat.target;
+            },
+
+            getEmail: function () {
+                if(quote.guestEmail) return quote.guestEmail;
+                else return window.checkoutConfig.customerData.email;
             },
 
             /** Redirect to purchased.at */
@@ -44,24 +50,25 @@ define(
             },
 
             preparePurchasedat: function () {
-                if ($("#purchasedat_submit").is(":visible")) {
+/*                if ($("#purchasedat_submit").is(":visible")) {
                     var params = window.checkoutConfig.payment.purchasedat.params;
                     var target_string = window.checkoutConfig.payment.purchasedat.target;
                     var params_array = {token: params, target: target_string}
                     purchased_at.auto(params_array) ;
                 }
-                else {
+                else {*/
                     $.ajax({
                         url: window.checkoutConfig.payment.purchasedat.ajax_url,
+                        data: {"email": quote.guestEmail},
                         cache: false,
                         dataType: 'json'
                     }).done(function (data) {
                         var params = data.token;
                         var target_string = data.target;
-                        var params_array = {token: params, target: target_string}
+                        var params_array = {token: params, target: target_string};
                         purchased_at.auto(params_array);
                     });
-                }
+//                }
                 return false;
             }
         });

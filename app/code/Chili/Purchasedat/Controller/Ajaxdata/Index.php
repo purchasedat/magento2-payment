@@ -69,11 +69,19 @@ class Index extends \Magento\Framework\App\Action\Action
         $result = $this->_jsonResultFactory->create();
         /** You may introduce your own constants for this custom REST API */
         $quote= $this->_cart->getQuote();
-        $data = $this->_patModel->getPostData($quote) ;
-        $this->button_code = $this->_patModel->renderScript($data["apiKey"], $data["options"]) ;
-        $token = $this->getPayButtonParams() ;
-        $target = $this->getPayButtonTarget() ;
-        $result->setData(['token' => $token, 'target' => $target]);
+        $request = $this->getRequest();
+        $guest_email = $request->getParam("email");
+        $data = $this->_patModel->getPostData($quote, $guest_email) ;
+        if ($data) {
+            $this->button_code = $this->_patModel->renderScript($data["apiKey"], $data["options"]) ;
+            $token = $this->getPayButtonParams() ;
+            $target = $this->getPayButtonTarget() ;
+            $result->setData(['token' => $token, 'target' => $target]);
+        }
+        else
+        {
+            $result->setData(['Error' => "Error happened!"]) ;
+        }
         return $result;
     }
 

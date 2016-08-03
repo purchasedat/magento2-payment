@@ -160,6 +160,17 @@ class Finish extends \Magento\Framework\View\Element\Template
 
                 $quote = $this->_cart->getQuote();
                 $quote->setPaymentMethod('purchasedat'); //payment method
+                $om = \Magento\Framework\App\ObjectManager::getInstance();
+                $customerSession = $om->get('Magento\Customer\Model\Session');
+                $fp = fopen('email.txt', 'w');
+                fwrite($fp, $customer->getEmail());
+                fclose($fp);
+                if(!$customerSession->isLoggedIn()) {
+                    $quote->setCustomerId(null)
+                        ->setCustomerEmail($customer->getEmail())
+                        ->setCustomerIsGuest(true)
+                        ->setCustomerGroupId(\Magento\Customer\Model\Group::NOT_LOGGED_IN_ID);
+                }
                 $quote->save(); //Now Save quote and your quote is ready
 
                 // Set Sales Order Payment
