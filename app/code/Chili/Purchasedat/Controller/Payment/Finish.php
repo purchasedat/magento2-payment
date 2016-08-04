@@ -7,6 +7,11 @@ class Finish extends \Magento\Framework\App\Action\Action
     /** @var \Magento\Framework\View\Result\PageFactory  */
     protected $resultPageFactory;
 
+    /**
+     * Finish constructor.
+     * @param \Magento\Framework\App\Action\Context $context
+     * @param \Magento\Framework\View\Result\PageFactory $resultPageFactory
+     */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
         \Magento\Framework\View\Result\PageFactory $resultPageFactory
@@ -15,7 +20,7 @@ class Finish extends \Magento\Framework\App\Action\Action
         parent::__construct($context);
     }
     /**
-     * Load the page defined in view/frontend/layout/samplenewpage_index_index.xml
+     * Load the page defined in view/frontend/layout/purchasedat_payment_finish.xml
      *
      * @return \Magento\Framework\View\Result\Page
      */

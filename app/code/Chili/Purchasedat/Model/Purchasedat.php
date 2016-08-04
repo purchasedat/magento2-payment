@@ -21,7 +21,7 @@ use Magento\Store\Model\StoreManagerInterface;
 
 
 /**
- * Pay In Store payment method model
+ * Purchased.at payment method model
  */
 class Purchasedat extends \Magento\Payment\Model\Method\AbstractMethod
 {
@@ -44,7 +44,6 @@ class Purchasedat extends \Magento\Payment\Model\Method\AbstractMethod
      */
     protected $_quote = null;
 
-
     /**
      *
      * @var \Magento\Customer\Model\Session
@@ -64,95 +63,29 @@ class Purchasedat extends \Magento\Payment\Model\Method\AbstractMethod
     protected $_isOffline = true;
 
     /**
-     * @var bool
-     */
-    protected $_canAuthorize            = true;
-
-    /**
-     * @var bool
-     */
-    protected $_canCapture              = true;
-
-    /**
-     * @var bool
-     */
-    protected $_canRefund               = true;
-
-    /**
-     * @var bool
-     */
-    protected $_canUseInternal          = true;
-
-    /**
-     * @var bool
-     */
-    protected $_canUseCheckout          = true;
-
-    /**
-     * @var bool
-     */
-    protected $_canRefundInvoicePartial = true;
-
-    /**
-     * @var array|null
-     */
-    protected $requestMaskedFields      = null;
-
-
-    /**
-     * @var \Magento\Framework\App\RequestInterface
-     */
-    protected $request;
-
-    /**
      * @var \Magento\Checkout\Model\Cart
      */
-    protected $cart ;
+    protected $_cart ;
 
     /**
      * @var \Magento\Checkout\Model\Session
      */
-    protected $session ;
+    protected $_session ;
 
     /**
      * @var Magento\Customer\Helper\Session\CurrentCustomer
      */
-    protected $current_customer ;
+    protected $_current_customer ;
 
     /**
      * @var Magento\Store\Model\StoreManagerInterface
      */
-    protected $storemanager ;
-
-    /**
-     * @var TransactionCollectionFactory
-     */
-    protected $salesTransactionCollectionFactory;
-
-    /**
-     * @var \Magento\Framework\App\ProductMetadataInterface
-     */
-    protected $productMetaData;
-
-    /**
-     * @var \Magento\Directory\Model\RegionFactory
-     */
-    protected $regionFactory;
-
-    /**
-     * @var \Magento\Sales\Api\OrderRepositoryInterface
-     */
-    protected $orderRepository;
+    protected $_storemanager ;
 
     /**
      * @var \Magento\Quote\Api\CartRepositoryInterface $quoteRepository
      */
-    protected $quoteRepository;
-
-    /**
-     * @var \Magento\Quote\Api\CartManagementInterface $quoteManagement
-     */
-    protected $quoteManagement;
+    protected $_quoteRepository;
 
     /**
      * Test mode or live
@@ -162,23 +95,25 @@ class Purchasedat extends \Magento\Payment\Model\Method\AbstractMethod
     protected $_test = 'test';
 
     /**
+     * Purchasedat constructor.
      * @param \Magento\Framework\Model\Context $context
+     * @param \Magento\Checkout\Model\Session $checkoutSession
      * @param \Magento\Framework\Registry $registry
      * @param \Magento\Framework\Api\ExtensionAttributesFactory $extensionFactory
      * @param \Magento\Framework\Api\AttributeValueFactory $customAttributeFactory
      * @param \Magento\Payment\Helper\Data $paymentData
-     * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
+     * @param App\Config\ScopeConfigInterface $scopeConfig
      * @param \Magento\Payment\Model\Method\Logger $logger
-     * @param \Magento\Framework\App\RequestInterface $request
-     * @param TransactionCollectionFactory $salesTransactionCollectionFactory
-     * @param \Magento\Framework\App\ProductMetadataInterface $productMetaData
-     * @param \Magento\Directory\Model\RegionFactory $regionFactory
-     * @param \Magento\Framework\Model\ResourceModel\AbstractResource $resource
-     * @param \Magento\Sales\Api\OrderRepositoryInterface $orderRepository
-     * @param \Magento\Framework\Data\Collection\AbstractDb $resourceCollection
+     * @param Cart $cart
+     * @param \Magento\Checkout\Model\Session $session
+     * @param StoreManagerInterface $storemanager
+     * @param CurrentCustomer $currentCustomer
+     * @param \Magento\Quote\Api\CartRepositoryInterface $quoteRepository
+     * @param \Magento\Framework\Model\ResourceModel\AbstractResource|null $resource
+     * @param \Magento\Framework\Data\Collection\AbstractDb|null $resourceCollection
      * @param array $data
-     * @SuppressWarnings(PHPMD.ExcessiveParameterList)
      */
+
     public function __construct(
         \Magento\Framework\Model\Context $context,
         \Magento\Checkout\Model\Session $checkoutSession,
@@ -188,26 +123,20 @@ class Purchasedat extends \Magento\Payment\Model\Method\AbstractMethod
         \Magento\Payment\Helper\Data $paymentData,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \Magento\Payment\Model\Method\Logger $logger,
-        \Magento\Framework\Module\ModuleListInterface $moduleList,
-        \Magento\Framework\Stdlib\DateTime\TimezoneInterface $localeDate,
-        \Magento\Sales\Model\OrderFactory $orderFactory,
         \Magento\Checkout\Model\Cart $cart,
         \Magento\Checkout\Model\Session $session,
         \Magento\Store\Model\StoreManagerInterface $storemanager,
         \Magento\Customer\Helper\Session\CurrentCustomer $currentCustomer,
         \Magento\Quote\Api\CartRepositoryInterface $quoteRepository,
-        \Magento\Quote\Api\CartManagementInterface $quoteManagement,
         \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         array $data = []){
         $this->_checkoutSession = $checkoutSession;
-        $this->orderFactory = $orderFactory;
-        $this->cart = $cart ;
-        $this->session = $session ;
-        $this->current_customer = $currentCustomer ;
-        $this->storemanager = $storemanager ;
-        $this->quoteRepository = $quoteRepository ;
-        $this->quoteManagement = $quoteManagement;
+        $this->_cart = $cart ;
+        $this->_session = $session ;
+        $this->_current_customer = $currentCustomer ;
+        $this->_storemanager = $storemanager ;
+        $this->_quoteRepository = $quoteRepository ;
         parent::__construct($context,
             $registry,
             $extensionFactory,
@@ -221,29 +150,11 @@ class Purchasedat extends \Magento\Payment\Model\Method\AbstractMethod
     }
 
 
-    //@param \Magento\Framework\Object|\Magento\Payment\Model\InfoInterface $payment
-    public function getAmount($orderId)//\Magento\Framework\Object $payment)
-    {   //\Magento\Sales\Model\OrderFactory
-        $orderFactory=$this->orderFactory;
-        /** @var \Magento\Sales\Model\Order $order */
-        // $order = $payment->getOrder();
-        // $order->getIncrementId();
-        /* @var $order \Magento\Sales\Model\Order */
-
-        $order = $orderFactory->create()->loadByIncrementId($orderId);
-        //$payment= $order->getPayment();
-
-        // return $payment->getAmount();
-        return $order->getGrandTotal();
-    }
-
-    protected function getOrder($orderId)
-    {
-        $orderFactory=$this->orderFactory;
-        return $orderFactory->create()->loadByIncrementId($orderId);
-
-    }
-
+    /**
+     * Load and return customer details by customer ID
+     * @param $customerId
+     * @return mixed
+     */
     protected function getCustomerInfo($customerId) {
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
         return $objectManager->create('Magento\Customer\Model\Customer')->load($customerId);
@@ -259,11 +170,26 @@ class Purchasedat extends \Magento\Payment\Model\Method\AbstractMethod
         return trim($this->getConfigData('instructions'));
     }
 
+    /**
+     * Return the number formatted price
+     * @param $price
+     * @return string
+     */
     public function getNumberFormat($price)
     {
         return number_format($price, 2);
     }
-    
+
+    /**
+     * Static function call the purchased.at's render script, and return the html / javascript what it rendered.
+     * On the most of webshop engines we can inject this code onto the checkout page and it will display the pay button, but in magento 2 it is not working.
+     * So, we will process this code and us its fragments
+     * @param $apiKey
+     * @param $purchaseOptions
+     * @param null $target
+     * @param null $jwtOptions
+     * @return string
+     */
     public static function renderScript($apiKey, $purchaseOptions, $target = null, $jwtOptions = null)
     {
         return Sdk\PurchaseScript::render($apiKey, $purchaseOptions, $target, $jwtOptions);
@@ -286,17 +212,20 @@ class Purchasedat extends \Magento\Payment\Model\Method\AbstractMethod
     }
 
 
+    /**
+     * Get and return the quote details in the expected structure by purchased.at and api key in an array with two fields
+     * @param $quote
+     * @param string $guest_email: If the buyer is not logged in, we use that e-mail address, what he set on billing address form
+     * @return array|bool
+     */
     public function getPostData($quote, $guest_email = "")
     {
         $quote->reserveOrderId();
-        $this->quoteRepository->save($quote);
+        $this->_quoteRepository->save($quote);
         $quote->collectTotals();
         $quote->save();
-        $customer_id = $this->current_customer->getCustomerId();
+        $customer_id = $this->_current_customer->getCustomerId();
         $customer = $this->getCustomerInfo($customer_id);
-/*        $fp = fopen('email.txt', 'w');
-        fwrite($fp, "aaa: " . print_r(get_object_vars($quote->getBillingAddress()), true));
-        fclose($fp);*/
         if ($quote->getGrandTotal() && ($customer->getEmail() || $guest_email != "")) {
             $quote_data = $quote->getData();
             $grand_total = $quote_data['grand_total'];
@@ -313,7 +242,7 @@ class Purchasedat extends \Magento\Payment\Model\Method\AbstractMethod
             if ($this->_test == "test") {
                 $options->setTestEnabled(true);
             }
-            $baseUrl = $this->storemanager->getStore()->getBaseUrl();
+            $baseUrl = $this->_storemanager->getStore()->getBaseUrl();
             $options->setRedirectUrl($baseUrl . 'purchasedat/payment/finish');
             $om = \Magento\Framework\App\ObjectManager::getInstance();
             $resolver = $om->get('Magento\Framework\Locale\Resolver');
@@ -323,7 +252,7 @@ class Purchasedat extends \Magento\Payment\Model\Method\AbstractMethod
 
             $shipping_rate = $grand_total - $subtotal;
             // Create items list
-            foreach ($this->session->getQuote()->getAllItems() as $items) {
+            foreach ($this->_session->getQuote()->getAllItems() as $items) {
                 if ($checkout == null) {
                     $checkout = $options->withCheckout()->addItem(Sdk\CheckoutItem::of((int)$items->getQty(), $items->getSku())
                         ->addName($language, $items->getName())
@@ -352,10 +281,14 @@ class Purchasedat extends \Magento\Payment\Model\Method\AbstractMethod
         return $data;
     }
 
+    /**
+     * Collect the quote details, get the purchased.at pay button's html / js coda and return it.
+     * @return string
+     */
     public function getPayButton()
     {
         $paybutton_code = "" ;
-        $quote= $this->cart->getQuote();
+        $quote= $this->_cart->getQuote();
         $data = $this->getPostData($quote) ;
         if ($data) {
             $paybutton_code = self::renderScript($data["apiKey"], $data["options"]);

@@ -66,10 +66,18 @@ class Finish extends \Magento\Framework\View\Element\Template
     protected $_helper;
 
     /**
+     * Finish constructor.
      * @param \Magento\Framework\View\Element\Template\Context $context
      * @param \Magento\Checkout\Model\Session $checkoutSession
-     * @param \Magento\Sales\Model\Order\Config $orderConfig
+     * @param \Magento\Checkout\Model\Cart $cart
+     * @param \Magento\Sales\Model\OrderFactory $orderFactory
+     * @param Order\Config $orderConfig
+     * @param \Magento\Quote\Api\CartRepositoryInterface $quoteRepository
+     * @param \Magento\Quote\Model\QuoteFactory $quoteFactory
+     * @param \Magento\Quote\Model\QuoteManagement $quoteManagement
      * @param \Magento\Framework\App\Http\Context $httpContext
+     * @param \Chili\Purchasedat\Model\Purchasedat $patModel
+     * @param \Chili\Purchasedat\Helper\Data $helper
      * @param array $data
      */
     public function __construct(
@@ -96,7 +104,6 @@ class Finish extends \Magento\Framework\View\Element\Template
         $this->_quoteManagement = $quoteManagement;
         $this->_isScopePrivate = true;
         $this->httpContext = $httpContext;
-
         $this->_patModel = $patModel;
         $this->_helper = $helper;
     }
@@ -113,13 +120,13 @@ class Finish extends \Magento\Framework\View\Element\Template
     }
 
     /**
-     * Prepares block data
+     * Prepares block data and process the response.
+     * If the purchase process was successful, create the order, otherwise show the error message
      *
      * @return void
      */
     protected function prepareBlockData()
     {
-//        $order = $this->_orderFactory->create();
         $order_id = -1 ;
         $api_key = $this->_helper->getConfig('payment/purchasedat/api_key');
         $apiClient = new Sdk\APIClient($api_key);
@@ -210,46 +217,9 @@ class Finish extends \Magento\Framework\View\Element\Template
             [
                 'error_message' => $error_message,
                 'result_message' => $result_message,
-
-//                'transaction_data' => $s2p_transaction->getData(),
-//                'transaction_extra_data' => $transaction_extra_data,
-//                'transaction_details_title' => $transaction_details_titles,
-
-//                'is_order_visible' => $this->isVisible($order),
-/*                'view_order_url' => $this->getUrl(
-                    'sales/order/view/',
-                    ['order_id' => $order->getEntityId()]
-                ),*/
-//                'can_view_order'  => $this->canViewOrder($order),
                 'order_id'  => $order_id
 
             ]
         );
-    }
-
-    /**
-     * Is order visible
-     *
-     * @param Order $order
-     * @return bool
-     */
-    protected function isVisible(Order $order)
-    {
-        return !in_array(
-            $order->getStatus(),
-            $this->_orderConfig->getInvisibleOnFrontStatuses()
-        );
-    }
-
-    /**
-     * Can view order
-     *
-     * @param Order $order
-     * @return bool
-     */
-    protected function canViewOrder(Order $order)
-    {
-        return $this->httpContext->getValue(Context::CONTEXT_AUTH)
-               && $this->isVisible($order);
     }
 }
