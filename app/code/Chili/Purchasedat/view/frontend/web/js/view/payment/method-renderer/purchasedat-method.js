@@ -21,7 +21,11 @@ define(
                 template: 'Chili_Purchasedat/payment/purchasedat'
             },
 
-            /** Returns send check to info */
+            /** Returns send check to info
+             * window.checkoutConfig.payment.purchasedat.foobar is contains the config array foobar fields value from the PurchasedatConfigProvider.php
+             * So if we need more datas pass from php to javascript, we need more fields into the config array in the configprovider, and we reach it same way like foobar example
+             * @returns {*}
+             */
             getInstructions: function() {
                 this.preparePurchasedat();
                 return window.checkoutConfig.payment.purchasedat.instructions;
@@ -33,6 +37,10 @@ define(
 
             getPayButtonTarget: function() {
                 return window.checkoutConfig.payment.purchasedat.target;
+            },
+
+            getLogoURL: function() {
+                return window.checkoutConfig.payment.purchasedat.logo_url;
             },
 
             getEmail: function () {
@@ -50,25 +58,17 @@ define(
             },
 
             preparePurchasedat: function () {
-/*                if ($("#purchasedat_submit").is(":visible")) {
-                    var params = window.checkoutConfig.payment.purchasedat.params;
-                    var target_string = window.checkoutConfig.payment.purchasedat.target;
-                    var params_array = {token: params, target: target_string}
-                    purchased_at.auto(params_array) ;
-                }
-                else {*/
-                    $.ajax({
-                        url: window.checkoutConfig.payment.purchasedat.ajax_url,
-                        data: {"email": quote.guestEmail},
-                        cache: false,
-                        dataType: 'json'
-                    }).done(function (data) {
-                        var params = data.token;
-                        var target_string = data.target;
-                        var params_array = {token: params, target: target_string};
-                        purchased_at.auto(params_array);
-                    });
-//                }
+                $.ajax({
+                    url: window.checkoutConfig.payment.purchasedat.ajax_url,
+                    data: {"email": quote.guestEmail},
+                    cache: false,
+                    dataType: 'json'
+                }).done(function (data) {
+                    var params = data.token;
+                    var target_string = data.target;
+                    var params_array = {token: params, target: target_string};
+                    purchased_at.auto(params_array);
+                });
                 return false;
             }
         });

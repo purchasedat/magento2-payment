@@ -22,6 +22,8 @@ class PurchasedatConfigProvider implements ConfigProviderInterface
     protected $button_code;
 
     protected $urlBuider;
+
+    protected $storemanager;
     /**
      * @var Config
      */
@@ -29,12 +31,14 @@ class PurchasedatConfigProvider implements ConfigProviderInterface
 
     public function __construct(
         \Magento\Payment\Helper\Data $paymentHelper,
-        \Magento\Framework\UrlInterface $urlBuilder
+        \Magento\Framework\UrlInterface $urlBuilder,
+        \Magento\Store\Model\StoreManagerInterface $storemanager
     )
     {
         $this->method = $paymentHelper->getMethodInstance($this->methodCode);
         $this->urlBuilder = $urlBuilder;
         $this->button_code = $this->method->getPayButton();
+        $this->storemanager = $storemanager;
     }
 
     /**
@@ -48,7 +52,8 @@ class PurchasedatConfigProvider implements ConfigProviderInterface
                     'instructions' => $this->method->getInstructions(),
                     'params' => $this->getPayButtonParams(),
                     'target' => $this->getPayButtonTarget(),
-                    'ajax_url' => $this->getAjaxCallUrl()
+                    'ajax_url' => $this->getAjaxCallUrl(),
+                    'logo_url' => $this->getLogoURL()
                 ],
             ],
         ];
@@ -60,6 +65,11 @@ class PurchasedatConfigProvider implements ConfigProviderInterface
 
     protected function getAjaxCallUrl() {
         return $this->urlBuilder->getUrl('purchasedat/ajaxdata/index', $paramsHere = array());
+    }
+
+    protected function getLogoURL() {
+        $base_url = $this->storemanager->getStore()->getBaseUrl() ;
+        return $base_url . "pub/media/images/pat-logo.png";
     }
 
     protected function getPayButtonParams() {

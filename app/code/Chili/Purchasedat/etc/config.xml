@@ -13,7 +13,7 @@
                 <title>Purchased.at</title>
                 <order_status>pending_payment</order_status>
                 <test>1</test>
-                <instructions>Instruction.</instructions>
+                <instructions>You will be redirected to Purchased.at</instructions>
                 <payment_action>true</payment_action>
                 <model>Chili\Purchasedat\Model\Purchasedat</model>
             </purchasedat>
