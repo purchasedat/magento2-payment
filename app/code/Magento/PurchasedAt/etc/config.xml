@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © 2015 Magento. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../Store/etc/config.xsd">
+    <default>
+        <payment>
+            <purchasedat>
+                <active>1</active>
+                <title>Purchased.at</title>
+                <order_status>pending_payment</order_status>
+                <test>1</test>
+                <instructions>You will be redirected to Purchased.at</instructions>
+                <payment_action>true</payment_action>
+                <model>Magento\PurchasedAt\Model\Purchasedat</model>
+            </purchasedat>
+        </payment>
+    </default>
+</config>
