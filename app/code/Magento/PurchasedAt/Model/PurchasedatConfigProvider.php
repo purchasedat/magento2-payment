@@ -1,10 +1,5 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Monsz
- * Date: 2016.07.25.
- * Time: 0:26
- */
+
 namespace Magento\PurchasedAt\Model;
 
 use Magento\Checkout\Model\ConfigProviderInterface;
