@@ -61,8 +61,8 @@ class Index extends \Magento\Framework\App\Action\Action
     }
 
     /**
-     * Show / return the token and target infor from the script that rendered by purchased.at SDK
-     * To set up our magento 2 javascript function what run the purchased.at widget javascript, we need the token and the target info
+     * Show / return the token and target info from the script that is rendered by purchased.at SDK
+     * To set up our Magento 2 javascript function what run the purchased.at widget javascript, we need the token and the target info
      * @return \Magento\Framework\Controller\Result\Json
      */
     public function execute()

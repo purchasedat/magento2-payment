@@ -154,7 +154,7 @@ class Finish extends \Magento\Framework\View\Element\Template
                     $transaction->getState()
                 );
                 if ($transaction->isTest()) {
-                    $error_message .= "TEST<br />" ;
+                    $error_message .= "<br><strong>This was a TEST transaction</strong><br />" ;
                 }
             }
             else
@@ -169,9 +169,6 @@ class Finish extends \Magento\Framework\View\Element\Template
                 $quote->setPaymentMethod('purchasedat'); //payment method
                 $om = \Magento\Framework\App\ObjectManager::getInstance();
                 $customerSession = $om->get('Magento\Customer\Model\Session');
-                $fp = fopen('email.txt', 'w');
-                fwrite($fp, $customer->getEmail());
-                fclose($fp);
                 if(!$customerSession->isLoggedIn()) {
                     $quote->setCustomerId(null)
                         ->setCustomerEmail($customer->getEmail())
@@ -209,7 +206,7 @@ class Finish extends \Magento\Framework\View\Element\Template
                     $price->getCurrency()) ;
 
                 if ($transaction->isTest()) {
-                    $result_message .= "TEST<br />" ;
+                    $result_message .= "<br><strong>This was a TEST transaction</strong><br />" ;
                 }
             }
         }

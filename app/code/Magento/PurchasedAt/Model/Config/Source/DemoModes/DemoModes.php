@@ -1,7 +1,6 @@
 <?php
 /**
  *
- * @author     Árpád Tóth
  * @category   PurchasedAt
  * @package    PurchasedAt
  */

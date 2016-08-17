@@ -183,14 +183,14 @@ class Purchasedat extends \Magento\Payment\Model\Method\AbstractMethod
     }
 
     /**
-     * Static function call purchased.at's render script, and return the html / javascript what it rendered.
+     * Static function call to purchased.at's render script render method.
      * On the most of webshop engines we can inject this code onto the checkout page and it will display the pay button, but in magento 2 it is not working.
      * So, we will process this code and its fragments
      * @param $apiKey
      * @param $purchaseOptions
      * @param null $target
      * @param null $jwtOptions
-     * @return string
+     * @return string The rendered html and javascript.
      */
     public static function renderScript($apiKey, $purchaseOptions, $target = null, $jwtOptions = null)
     {
@@ -297,5 +297,5 @@ class Purchasedat extends \Magento\Payment\Model\Method\AbstractMethod
         }
         return $paybutton_code;
     }
-    
+
 }
