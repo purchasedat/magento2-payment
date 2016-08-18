@@ -9,7 +9,7 @@ class PurchasedatConfigProvider implements ConfigProviderInterface
     protected $methodCode = \Magento\PurchasedAt\Model\Purchasedat::PAYMENT_METHOD_PURCHASEDAT_CODE;
 
     protected $method;
-    
+
     protected $widget_params;
 
     protected $widget_target;
@@ -19,6 +19,9 @@ class PurchasedatConfigProvider implements ConfigProviderInterface
     protected $urlBuider;
 
     protected $storemanager;
+
+    protected $assetRepository;
+
     /**
      * @var Config
      */
@@ -27,13 +30,15 @@ class PurchasedatConfigProvider implements ConfigProviderInterface
     public function __construct(
         \Magento\Payment\Helper\Data $paymentHelper,
         \Magento\Framework\UrlInterface $urlBuilder,
-        \Magento\Store\Model\StoreManagerInterface $storemanager
+        \Magento\Store\Model\StoreManagerInterface $storemanager,
+    	\Magento\Framework\View\Asset\Repository $assetRepository
     )
     {
         $this->method = $paymentHelper->getMethodInstance($this->methodCode);
         $this->urlBuilder = $urlBuilder;
         $this->button_code = $this->method->getPayButton();
         $this->storemanager = $storemanager;
+        $this->assetRepository = $assetRepository;
     }
 
     /**
@@ -64,7 +69,7 @@ class PurchasedatConfigProvider implements ConfigProviderInterface
 
     protected function getLogoURL() {
         $base_url = $this->storemanager->getStore()->getBaseUrl() ;
-        return $base_url . "app/code/Magento/PurchasedAt/view/frontend/web/images/pat-logo.png";
+        return $this->assetRepository->getUrl("Magento_PurchasedAt::images/pat-logo.png");
     }
 
     protected function getPayButtonParams() {
