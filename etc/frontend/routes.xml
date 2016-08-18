@@ -8,7 +8,7 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:App/etc/routes.xsd">
     <router id="standard">
         <route id="purchasedat" frontName="purchasedat">
-            <module name="Magento_PurchasedAt" />
+            <module name="PurchasedAt_Magento2Payment" />
         </route>
     </router>
 </config>

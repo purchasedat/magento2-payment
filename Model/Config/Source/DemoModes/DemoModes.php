@@ -1,10 +1,6 @@
 <?php
-/**
- *
- * @category   PurchasedAt
- * @package    PurchasedAt
- */
-namespace Magento\PurchasedAt\Model\Config\Source\DemoModes;
+
+namespace PurchasedAt\Magento2Payment\Model\Config\Source\DemoModes;
 
 class DemoModes
 {

@@ -2,7 +2,7 @@
     <type name="Magento\Checkout\Model\CompositeConfigProvider">
         <arguments>
             <argument name="configProviders" xsi:type="array">
-                <item name= "purchasedat_config_provider" xsi:type="object">Magento\PurchasedAt\Model\PurchasedatConfigProvider</item>
+                <item name= "purchasedat_config_provider" xsi:type="object">PurchasedAt\Magento2Payment\Model\PurchasedatConfigProvider</item>
             </argument>
         </arguments>
     </type>

@@ -1,5 +1,5 @@
 <?php
-namespace Magento\PurchasedAt\Helper;
+namespace PurchasedAt\Magento2Payment\Helper;
 
 class Data extends \Magento\Framework\App\Helper\AbstractHelper
 {

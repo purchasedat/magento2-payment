@@ -19,7 +19,7 @@
                 </field>
                 <field id="order_status" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>New Order Status</label>
-                    <source_model>Magento\PurchasedAt\Model\Config\Source\Order\Status\Pendingpayment</source_model>
+                    <source_model>PurchasedAt\Magento2Payment\Model\Config\Source\Order\Status\Pendingpayment</source_model>
                 </field>
               
                 <field id="allowspecific" translate="label" type="allowspecific" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
@@ -36,7 +36,7 @@
                 </field>
                 <field id="test_mode" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Test mode</label>
-                    <source_model>Magento\PurchasedAt\Model\Config\Source\DemoModes\DemoModes</source_model>
+                    <source_model>PurchasedAt\Magento2Payment\Model\Config\Source\DemoModes\DemoModes</source_model>
                 </field>
                 <field id="api_key" translate="label" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>API key</label>

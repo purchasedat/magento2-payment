@@ -1,5 +1,5 @@
 <?php
-namespace Magento\PurchasedAt\Controller\Ajaxdata;
+namespace PurchasedAt\Magento2Payment\Controller\Ajaxdata;
 
 use PurchasedAt\API;
 use PurchasedAt;
@@ -27,7 +27,7 @@ class Index extends \Magento\Framework\App\Action\Action
      */
     protected $_quoteRepository;
 
-    /** @var \Magento\PurchasedAt\Model\Purchasedat */
+    /** @var \PurchasedAt\Magento2Payment\Model\Purchasedat */
     protected $_patModel;
 
     /**
@@ -42,7 +42,7 @@ class Index extends \Magento\Framework\App\Action\Action
      * @param \Magento\Checkout\Model\Session $checkoutSession
      * @param \Magento\Checkout\Model\Cart $cart
      * @param \Magento\Quote\Api\CartRepositoryInterface $quoteRepository
-     * @param \Magento\PurchasedAt\Model\Purchasedat $patModel
+     * @param \PurchasedAt\Magento2Payment\Model\Purchasedat $patModel
      */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
@@ -50,7 +50,7 @@ class Index extends \Magento\Framework\App\Action\Action
         \Magento\Checkout\Model\Session $checkoutSession,
         \Magento\Checkout\Model\Cart $cart,
         \Magento\Quote\Api\CartRepositoryInterface $quoteRepository,
-        \Magento\PurchasedAt\Model\Purchasedat $patModel
+        \PurchasedAt\Magento2Payment\Model\Purchasedat $patModel
     ) {
         parent::__construct($context);
         $this->_jsonResultFactory = $jsonResultFactory;

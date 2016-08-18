@@ -1,5 +1,5 @@
 {
-  "name": "magento/purchasedat",
+  "name": "purchased-at/magento2-payment",
   "description": "Purchased.at for Magento 2",
   "type": "magento2-module",
   "version": "dev-master",
@@ -23,14 +23,14 @@
     "purchased-at/sdk-php": "*"
   },
   "autoload": {
-    "psr-4": { "Magento\\PurchasedAt\\": "" },
+    "psr-4": { "PurchasedAt\\Magento2Payment\\": "" },
     "files": [ "registration.php" ]
   },
   "extra": {
     "map": [
       [
         "*",
-        "Magento/PurchasedAt"
+        "PurchasedAt/Magento2Payment"
       ]
     ]
   }

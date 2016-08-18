@@ -17,7 +17,7 @@ define(
         rendererList.push(
             {
                 type: 'purchasedat',
-                component: 'Magento_PurchasedAt/js/view/payment/method-renderer/purchasedat-method'
+                component: 'PurchasedAt_Magento2Payment/js/view/payment/method-renderer/purchasedat-method'
             }
         );
         /** Add view logic here if needed */

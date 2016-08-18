@@ -1,6 +1,6 @@
 <?php
 
-namespace Magento\PurchasedAt\Controller\Payment;
+namespace PurchasedAt\Magento2Payment\Controller\Payment;
 
 class Finish extends \Magento\Framework\App\Action\Action
 {

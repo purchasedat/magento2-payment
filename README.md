@@ -7,8 +7,8 @@ An extension to add Purchased.at Payment method on Magento 2.x.
 This module is intended to be installed using composer.  After including this component and enabling it, you can verify it is installed by going the backend at:
 If you can't use composer, follow these steps:
 1. Copy the module directories and its files to installed magento 2 directory root
-2. Edit file app/etc/config.php, add the new module into modules array ('Magento_PurchasedAt' => 1,)
-3. Add new record into setup_module data table with these fields: module = Magento_PurchasedAt, schema_version = 2.0.0, data_version = 2.0.0
+2. Edit file app/etc/config.php, add the new module into modules array ('PurchasedAt_Magento2Payment' => 1,)
+3. Add new record into setup_module data table with these fields: module = PurchasedAt_Magento2Payment, schema_version = 2.0.0, data_version = 2.0.0
 
 ## Configuration
 

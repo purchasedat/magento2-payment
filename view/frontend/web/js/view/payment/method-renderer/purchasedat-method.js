@@ -18,7 +18,7 @@ define(
 
         return Component.extend({
             defaults: {
-                template: 'Magento_PurchasedAt/payment/purchasedat'
+                template: 'PurchasedAt_Magento2Payment/payment/purchasedat'
             },
 
             /** Returns send check to info

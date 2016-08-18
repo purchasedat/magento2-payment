@@ -1,6 +1,6 @@
 <?php
 
-namespace Magento\PurchasedAt\Block\Payment;
+namespace PurchasedAt\Magento2Payment\Block\Payment;
 
 use Magento\Customer\Model\Context;
 use Magento\Sales\Model\Order;
@@ -55,13 +55,13 @@ class Finish extends \Magento\Framework\View\Element\Template
      */
     protected $httpContext;
 
-    /** @var \Magento\PurchasedAt\Model\Purchasedat */
+    /** @var \PurchasedAt\Magento2Payment\Model\Purchasedat */
     protected $_patModel;
 
     /**
      * Helper
      *
-     * @var \Magento\PurchasedAt\Helper\Data
+     * @var \PurchasedAt\Magento2Payment\Helper\Data
      */
     protected $_helper;
 
@@ -76,8 +76,8 @@ class Finish extends \Magento\Framework\View\Element\Template
      * @param \Magento\Quote\Model\QuoteFactory $quoteFactory
      * @param \Magento\Quote\Model\QuoteManagement $quoteManagement
      * @param \Magento\Framework\App\Http\Context $httpContext
-     * @param \Magento\PurchasedAt\Model\Purchasedat $patModel
-     * @param \Magento\PurchasedAt\Helper\Data $helper
+     * @param \PurchasedAt\Magento2Payment\Model\Purchasedat $patModel
+     * @param \PurchasedAt\Magento2Payment\Helper\Data $helper
      * @param array $data
      */
     public function __construct(
@@ -90,8 +90,8 @@ class Finish extends \Magento\Framework\View\Element\Template
         \Magento\Quote\Model\QuoteFactory $quoteFactory,
         \Magento\Quote\Model\QuoteManagement $quoteManagement,
         \Magento\Framework\App\Http\Context $httpContext,
-        \Magento\PurchasedAt\Model\Purchasedat $patModel,
-        \Magento\PurchasedAt\Helper\Data $helper,
+        \PurchasedAt\Magento2Payment\Model\Purchasedat $patModel,
+        \PurchasedAt\Magento2Payment\Helper\Data $helper,
         array $data = []
     ) {
         parent::__construct($context, $data);
