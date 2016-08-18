@@ -129,7 +129,7 @@ class Finish extends \Magento\Framework\View\Element\Template
     {
         $order_id = -1 ;
         $api_key = $this->_helper->getConfig('payment/purchasedat/api_key');
-        $apiClient = new Sdk\APIClient($api_key);
+        $apiClient = new APIClient($api_key);
 
 // verify the redirect comes from purchased.at
 // and fetch the corresponding transaction

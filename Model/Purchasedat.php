@@ -194,7 +194,7 @@ class Purchasedat extends \Magento\Payment\Model\Method\AbstractMethod
      */
     public static function renderScript($apiKey, $purchaseOptions, $target = null, $jwtOptions = null)
     {
-        return Sdk\PurchaseScript::render($apiKey, $purchaseOptions, $target, $jwtOptions);
+        return PurchaseScript::render($apiKey, $purchaseOptions, $target, $jwtOptions);
     }
 
     /**
@@ -240,7 +240,7 @@ class Purchasedat extends \Magento\Payment\Model\Method\AbstractMethod
             {
                 $customer_email = $guest_email ;
             }
-            $options = new Sdk\PurchaseOptions($customer_email);
+            $options = new PurchaseOptions($customer_email);
             if ($this->_test == "test") {
                 $options->setTestEnabled(true);
             }
@@ -256,19 +256,19 @@ class Purchasedat extends \Magento\Payment\Model\Method\AbstractMethod
             // Create items list
             foreach ($this->_session->getQuote()->getAllItems() as $items) {
                 if ($checkout == null) {
-                    $checkout = $options->withCheckout()->addItem(Sdk\Purchase\CheckoutItem::of((int)$items->getQty(), $items->getSku())
+                    $checkout = $options->withCheckout()->addItem(Purchase\CheckoutItem::of((int)$items->getQty(), $items->getSku())
                         ->addName($language, $items->getName())
                         ->addPrice($currency_code, $this->getNumberFormat($items->getPrice()))
                     );
                 } else {
-                    $checkout->addItem(Sdk\CheckoutItem::of((int)$items->getQty(), $items->getSku())
+                    $checkout->addItem(CheckoutItem::of((int)$items->getQty(), $items->getSku())
                         ->addName($language, $items->getName())
                         ->addPrice($currency_code, $this->getNumberFormat($items->getPrice()))
                     );
                 }
             }
             if ($shipping_rate > 0) {
-                $checkout->addItem(Sdk\Purchase\CheckoutItem::of(1, "SHIPPING")
+                $checkout->addItem(Purchase\CheckoutItem::of(1, "SHIPPING")
                     ->addName($language, "Shipping")
                     ->addPrice($currency_code, $this->getNumberFormat($shipping_rate))
                 );
