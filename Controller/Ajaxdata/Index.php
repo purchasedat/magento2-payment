@@ -27,7 +27,7 @@ class Index extends \Magento\Framework\App\Action\Action
      */
     protected $_quoteRepository;
 
-    /** @var \PurchasedAt\Magento2Payment\Model\Purchasedat */
+    /** @var \PurchasedAt\Magento2Payment\Model\PurchasedatModel */
     protected $_patModel;
 
     /**
@@ -42,7 +42,7 @@ class Index extends \Magento\Framework\App\Action\Action
      * @param \Magento\Checkout\Model\Session $checkoutSession
      * @param \Magento\Checkout\Model\Cart $cart
      * @param \Magento\Quote\Api\CartRepositoryInterface $quoteRepository
-     * @param \PurchasedAt\Magento2Payment\Model\Purchasedat $patModel
+     * @param \PurchasedAt\Magento2Payment\Model\PurchasedatModel $patModel
      */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
@@ -50,7 +50,7 @@ class Index extends \Magento\Framework\App\Action\Action
         \Magento\Checkout\Model\Session $checkoutSession,
         \Magento\Checkout\Model\Cart $cart,
         \Magento\Quote\Api\CartRepositoryInterface $quoteRepository,
-        \PurchasedAt\Magento2Payment\Model\Purchasedat $patModel
+        \PurchasedAt\Magento2Payment\Model\PurchasedatModel $patModel
     ) {
         parent::__construct($context);
         $this->_jsonResultFactory = $jsonResultFactory;
