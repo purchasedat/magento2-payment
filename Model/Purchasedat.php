@@ -7,19 +7,13 @@
 namespace PurchasedAt\Magento2Payment\Model;
 
 use PurchasedAt\API;
-use PurchasedAt;
 use PurchasedAt\Purchase;
-use PurchasedAt\Signing;
-use Magento\Framework\Exception\LocalizedException;
-use Magento\Sales\Model\Order\Payment\Transaction;
-use Magento\Sales\Model\ResourceModel\Order\Payment\Transaction\CollectionFactory as TransactionCollectionFactory;
-use Magento\Sales\Model\Order\Payment\Transaction as PaymentTransaction;
-use Magento\Payment\Model\InfoInterface;
 use Magento\Framework\App;
 use Magento\Quote\Model\Quote;
 use Magento\Checkout\Model\Cart;
 use Magento\Customer\Helper\Session\CurrentCustomer;
 use Magento\Store\Model\StoreManagerInterface;
+use PurchasedAt\Purchase\CheckoutItem;
 
 
 /**
@@ -194,7 +188,7 @@ class Purchasedat extends \Magento\Payment\Model\Method\AbstractMethod
      */
     public static function renderScript($apiKey, $purchaseOptions, $target = null, $jwtOptions = null)
     {
-        return PurchaseScript::render($apiKey, $purchaseOptions, $target, $jwtOptions);
+        return \PurchasedAt\PurchaseScript::render($apiKey, $purchaseOptions, $target, $jwtOptions);
     }
 
     /**
@@ -240,7 +234,7 @@ class Purchasedat extends \Magento\Payment\Model\Method\AbstractMethod
             {
                 $customer_email = $guest_email ;
             }
-            $options = new PurchaseOptions($customer_email);
+            $options = new \PurchasedAt\PurchaseOptions($customer_email);
             if ($this->_test == "test") {
                 $options->setTestEnabled(true);
             }
