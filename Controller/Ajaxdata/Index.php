@@ -1,9 +1,6 @@
 <?php
 namespace PurchasedAt\Magento2Payment\Controller\Ajaxdata;
 
-use PurchasedAt\API;
-use PurchasedAt;
-
 /**
  * Return data in json format
  */
