@@ -5,6 +5,7 @@ namespace PurchasedAt\Magento2Payment\Block\Payment;
 use Magento\Customer\Model\Context;
 use Magento\Sales\Model\Order;
 use PurchasedAt\API;
+use PurchasedAt\APIClient;
 
 class Finish extends \Magento\Framework\View\Element\Template
 {
