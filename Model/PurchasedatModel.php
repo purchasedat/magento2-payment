@@ -25,7 +25,7 @@ use Magento\Store\Model\StoreManagerInterface;
 /**
  * Purchased.at payment method model
  */
-class Purchasedat extends \Magento\Payment\Model\Method\AbstractMethod
+class PurchasedatModel extends \Magento\Payment\Model\Method\AbstractMethod
 {
 
     /**
@@ -97,7 +97,7 @@ class Purchasedat extends \Magento\Payment\Model\Method\AbstractMethod
     protected $_test = 'test';
 
     /**
-     * PurchasedAt constructor.
+     * PurchasedatModel constructor.
      * @param \Magento\Framework\Model\Context $context
      * @param \Magento\Checkout\Model\Session $checkoutSession
      * @param \Magento\Framework\Registry $registry

@@ -15,7 +15,7 @@
                 <test>1</test>
                 <instructions>You will be redirected to Purchased.at</instructions>
                 <payment_action>true</payment_action>
-                <model>PurchasedAt\Magento2Payment\Model\Purchasedat</model>
+                <model>PurchasedAt\Magento2Payment\Model\PurchasedatModel</model>
             </purchasedat>
         </payment>
     </default>

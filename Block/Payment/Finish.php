@@ -55,7 +55,7 @@ class Finish extends \Magento\Framework\View\Element\Template
      */
     protected $httpContext;
 
-    /** @var \PurchasedAt\Magento2Payment\Model\Purchasedat */
+    /** @var \PurchasedAt\Magento2Payment\Model\PurchasedatModel */
     protected $_patModel;
 
     /**
@@ -76,7 +76,7 @@ class Finish extends \Magento\Framework\View\Element\Template
      * @param \Magento\Quote\Model\QuoteFactory $quoteFactory
      * @param \Magento\Quote\Model\QuoteManagement $quoteManagement
      * @param \Magento\Framework\App\Http\Context $httpContext
-     * @param \PurchasedAt\Magento2Payment\Model\Purchasedat $patModel
+     * @param \PurchasedAt\Magento2Payment\Model\PurchasedatModel $patModel
      * @param \PurchasedAt\Magento2Payment\Helper\Data $helper
      * @param array $data
      */
@@ -90,7 +90,7 @@ class Finish extends \Magento\Framework\View\Element\Template
         \Magento\Quote\Model\QuoteFactory $quoteFactory,
         \Magento\Quote\Model\QuoteManagement $quoteManagement,
         \Magento\Framework\App\Http\Context $httpContext,
-        \PurchasedAt\Magento2Payment\Model\Purchasedat $patModel,
+        \PurchasedAt\Magento2Payment\Model\PurchasedatModel $patModel,
         \PurchasedAt\Magento2Payment\Helper\Data $helper,
         array $data = []
     ) {
