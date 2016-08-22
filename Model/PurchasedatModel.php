@@ -8,8 +8,9 @@ namespace PurchasedAt\Magento2Payment\Model;
 
 use PurchasedAt\API;
 use PurchasedAt;
-use PurchasedAt\Purchase;
-use PurchasedAt\Signing;
+use PurchasedAt\PurchaseOptions;
+use PurchasedAt\PurchaseScript;
+use PurchasedAt\Purchase\CheckoutItem as PurchaseCheckoutItem;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Model\Order\Payment\Transaction;
 use Magento\Sales\Model\ResourceModel\Order\Payment\Transaction\CollectionFactory as TransactionCollectionFactory;
@@ -256,19 +257,19 @@ class PurchasedatModel extends \Magento\Payment\Model\Method\AbstractMethod
             // Create items list
             foreach ($this->_session->getQuote()->getAllItems() as $items) {
                 if ($checkout == null) {
-                    $checkout = $options->withCheckout()->addItem(Purchase\CheckoutItem::of((int)$items->getQty(), $items->getSku())
+                    $checkout = $options->withCheckout()->addItem(PurchaseCheckoutItem::of((int)$items->getQty(), $items->getSku())
                         ->addName($language, $items->getName())
                         ->addPrice($currency_code, $this->getNumberFormat($items->getPrice()))
                     );
                 } else {
-                    $checkout->addItem(CheckoutItem::of((int)$items->getQty(), $items->getSku())
+                    $checkout->addItem(PurchaseCheckoutItem::of((int)$items->getQty(), $items->getSku())
                         ->addName($language, $items->getName())
                         ->addPrice($currency_code, $this->getNumberFormat($items->getPrice()))
                     );
                 }
             }
             if ($shipping_rate > 0) {
-                $checkout->addItem(Purchase\CheckoutItem::of(1, "SHIPPING")
+                $checkout->addItem(PurchaseCheckoutItem::of(1, "SHIPPING")
                     ->addName($language, "Shipping")
                     ->addPrice($currency_code, $this->getNumberFormat($shipping_rate))
                 );
