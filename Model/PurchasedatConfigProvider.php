@@ -6,7 +6,7 @@ use Magento\Checkout\Model\ConfigProviderInterface;
 
 class PurchasedatConfigProvider implements ConfigProviderInterface
 {
-    protected $methodCode = \PurchasedAt\Magento2Payment\Model\Purchasedat::PAYMENT_METHOD_PURCHASEDAT_CODE;
+    protected $methodCode = \PurchasedAt\Magento2Payment\Model\PurchasedatModel::PAYMENT_METHOD_PURCHASEDAT_CODE;
 
     protected $method;
 
