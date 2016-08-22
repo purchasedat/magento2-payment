@@ -5,8 +5,6 @@ namespace PurchasedAt\Magento2Payment\Block\Payment;
 use Magento\Customer\Model\Context;
 use Magento\Sales\Model\Order;
 use PurchasedAt\API;
-use PurchasedAt;
-
 
 class Finish extends \Magento\Framework\View\Element\Template
 {
@@ -131,8 +129,8 @@ class Finish extends \Magento\Framework\View\Element\Template
         $api_key = $this->_helper->getConfig('payment/purchasedat/api_key');
         $apiClient = new APIClient($api_key);
 
-// verify the redirect comes from purchased.at
-// and fetch the corresponding transaction
+		// verify the redirect comes from purchased.at
+		// and fetch the corresponding transaction
         $result = $apiClient->fetchTransactionForRedirect();
 
         $error_message = "" ;
@@ -144,8 +142,8 @@ class Finish extends \Magento\Framework\View\Element\Template
         {
             $transaction = $result->result;
 
-// handle transactions that cannot become
-// successful anymore
+			// handle transactions that cannot become
+			// successful anymore
             if( $transaction->getState()!='successful' &&
                 $transaction->getState()!='pending' ) {
                 $error_message = sprintf('Transaction not successful: id=%s, ' .
@@ -163,7 +161,7 @@ class Finish extends \Magento\Framework\View\Element\Template
                 $customer = $transaction->getCustomer();
                 $price    = $transaction->getPrice();
 
-// Save quote to order
+				// Save quote to order
 
                 $quote = $this->_cart->getQuote();
                 $quote->setPaymentMethod('purchasedat'); //payment method
@@ -190,8 +188,8 @@ class Finish extends \Magento\Framework\View\Element\Template
                     $order_id =-1;
                 }
 
-// pending transactions are awaiting payment
-// and can become successful later
+				// pending transactions are awaiting payment
+				// and can become successful later
                 if( $transaction->getState() == 'pending' ) {
                     $result_message = 'We received your order, but are still ' .
                         'waiting for confirmation of the payment.<br>';

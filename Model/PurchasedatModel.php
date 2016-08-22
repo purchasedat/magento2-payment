@@ -274,7 +274,7 @@ class PurchasedatModel extends \Magento\Payment\Model\Method\AbstractMethod
                     ->addPrice($currency_code, $this->getNumberFormat($shipping_rate))
                 );
             }
-            $checkout->addTotal($currency_code, $grand_total);
+            $checkout->addTotal($currency_code, $this->getNumberFormat($grand_total));
             $data = array("apiKey" => $api_key, "options" => $options);
         }
         else
