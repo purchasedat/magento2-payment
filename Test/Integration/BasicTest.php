@@ -15,14 +15,11 @@ class ModelTest extends \PHPUnit_Framework_TestCase {
 	 */
 	protected $dataHelper;
 
-	protected $block;
-
 	protected function setUp()
 	{
 		$objectManager = new \Magento\Framework\TestFramework\Unit\Helper\ObjectManager($this);
 		$this->model = $objectManager->getObject('PurchasedAt\Magento2Payment\Model\PurchasedatModel');
 		$this->dataHelper = $objectManager->getObject('PurchasedAt\Magento2Payment\Helper\Data');
-		$this->block = $objectManager->getObject('PurchasedAt\Magento2Payment\Block\Payment\Finish');
 	}
 
 	public function testGetScript(){
@@ -37,10 +34,8 @@ class ModelTest extends \PHPUnit_Framework_TestCase {
 
 	public function testDataHelper(){
 		$number = $this->dataHelper->getNumberFormat(99);
-		var_dump($this->block->getBlockHtml());
 		$this->assertTrue($number === "99.00");
 	}
-
 
 }
 ?>
