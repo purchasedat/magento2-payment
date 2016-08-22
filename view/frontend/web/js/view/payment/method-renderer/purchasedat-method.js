@@ -75,7 +75,7 @@ define(
                         alert( "Error in purchased.at service call, get empty params field") ;
                     }
                 }).fail(function() {
-                    alert( "Error in ajax call: " + window.checkoutConfig.payment.purchasedat.ajax_url + "?email=" + quote.guestEmail );
+                    alert( "Error during Purchased.at payment option setup. Please check your API configuration" );
                 });
                 return false;
             }

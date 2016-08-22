@@ -1,23 +1,44 @@
-## Synopsis
+## purchased-at/magento2-payment
 
-An extension to add Purchased.at Payment method on Magento 2.x.
+This Magento 2.x module provides a payment method for the Purchased.at service.
 
 ## Installation
 
-This module is intended to be installed using composer.  After including this component and enabling it, you can verify it is installed by going the backend at:
-If you can't use composer, follow these steps:
-1. Copy the module directories and its files to installed magento 2 directory root
-2. Edit file app/etc/config.php, add the new module into modules array ('PurchasedAt_Magento2Payment' => 1,)
-3. Add new record into setup_module data table with these fields: module = PurchasedAt_Magento2Payment, schema_version = 2.0.0, data_version = 2.0.0
+### Pre-requisites
+Make sure your Magento 
+
+### Install using `composer`
+
+1. Log into your Magento 2 server and switch to the Magento filesystem owner user.
+2. Change your current directory to the root of your Magento 2 installation.
+3. Add the following line to ./composer.json under "require"
+
+  	```json
+  	"purchased-at/magento2-payment": "~1.0",
+  	```
+
+3. Run `composer update` && `composer install` and the Magento setup procedures:
+
+  	```bash
+  	./vendor/composer/composer/bin/composer update && \
+  	./vendor/composer/composer/bin/composer install && \
+  	./bin/magento setup:upgrade && \
+  	./bin/magento setup:static-content:deploy
+  	```
+	> Make sure you use the Magento bundled `composer`. If you would like to run it without `php -f` like above, make sure the binary has `u+x` privileges. Same applies to the `magento` binary, make it `u+x` if needed.
+
+### Install using from Magento Connect
+Our module submission is being reviewed. You will be able to installed via Magento Connect as soon as it gets approved.
 
 ## Configuration
+To get the payment module up and running you need to do some configuration that involves setting your Purchased.at API key. So if you do not already have an API key, head first to your [Vendor Dashboard](https://vendor.purchased.at/) and create a project with an API key.
+Having your API key prepared:
+1. go to your Magento Admin 
+2. navigate to Stores / Configuration / Sales / Payment methods 
+3. scroll down to the Purchased.at section. 
+4. Here you can set the title, the allowed countries, instructions text, sort order etc. but **make sure you enter you API key** it comoulsory even for testing. 
 
-Go to the Stores/Configuration/Sales/Payment methods page in magento admin.
-Find the Purchased.at module section.
-You can set the title, the allowed countries, instructions text, and sort order as you wish.
-If you want to test the module, set the Test mode to "Test", otherwise set it to "Live".
-The API key is required, you can get it from purchased.at vendor page, if you register there, create a project and generate the API key.
+> If you want to test the module, set the Test mode to "Test" otherwise set it to "Live".
 
-Once there check that the module name shows up in the list to confirm that it was installed correctly.
 
-If you don't see the Purchased.at payment option on webshop checkout page payment section, please clear magento cache, after that check it again.
+> If you don't see the Purchased.at among payment option at the store's checkout, please clear the Magento cache via on the Magento Admin under System > Cache Management > Flush Magento Cache.
