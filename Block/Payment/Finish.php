@@ -4,6 +4,7 @@ namespace PurchasedAt\Magento2Payment\Block\Payment;
 
 use Magento\Customer\Model\Context;
 use Magento\Sales\Model\Order;
+use Magento\Sales\Model\Order\Email\Sender\OrderSender;
 use PurchasedAt\API;
 use PurchasedAt\APIClient;
 
@@ -28,6 +29,11 @@ class Finish extends \Magento\Framework\View\Element\Template
      * @var \Magento\Sales\Model\Order\Config
      */
     protected $_orderConfig;
+
+    /**
+     * @var \Magento\Sales\Model\Order\Email\Sender\OrderSender
+     */
+    protected $orderSender;
 
     /**
      * @var \Magento\Quote\Api\CartRepositoryInterface,
@@ -71,6 +77,7 @@ class Finish extends \Magento\Framework\View\Element\Template
      * @param \Magento\Checkout\Model\Cart $cart
      * @param \Magento\Sales\Model\OrderFactory $orderFactory
      * @param Order\Config $orderConfig
+     * @param \Magento\Sales\Model\Order\Email\Sender\OrderSender $orderSender
      * @param \Magento\Quote\Api\CartRepositoryInterface $quoteRepository
      * @param \Magento\Quote\Model\QuoteFactory $quoteFactory
      * @param \Magento\Quote\Model\QuoteManagement $quoteManagement
@@ -85,6 +92,7 @@ class Finish extends \Magento\Framework\View\Element\Template
         \Magento\Checkout\Model\Cart $cart,
         \Magento\Sales\Model\OrderFactory $orderFactory,
         \Magento\Sales\Model\Order\Config $orderConfig,
+        \Magento\Sales\Model\Order\Email\Sender\OrderSender $orderSender,
         \Magento\Quote\Api\CartRepositoryInterface $quoteRepository,
         \Magento\Quote\Model\QuoteFactory $quoteFactory,
         \Magento\Quote\Model\QuoteManagement $quoteManagement,
@@ -98,6 +106,7 @@ class Finish extends \Magento\Framework\View\Element\Template
         $this->_cart = $cart ;
         $this->_orderFactory = $orderFactory;
         $this->_orderConfig = $orderConfig;
+        $this->orderSender = $orderSender;
         $this->_quoteRepository = $quoteRepository;
         $this->_quoteFactory = $quoteFactory;
         $this->_quoteManagement = $quoteManagement;
@@ -188,6 +197,7 @@ class Finish extends \Magento\Framework\View\Element\Template
                 } else {
                     $order_id =-1;
                 }
+                $this->orderSender->send($order);
 
 				// pending transactions are awaiting payment
 				// and can become successful later

@@ -250,7 +250,7 @@ class PurchasedatModel extends \Magento\Payment\Model\Method\AbstractMethod
             $om = \Magento\Framework\App\ObjectManager::getInstance();
             $resolver = $om->get('Magento\Framework\Locale\Resolver');
             $language = substr($resolver->getLocale(), 0, strpos($resolver->getLocale(), "_"));
-            $currency_code = $quote_data['global_currency_code'];
+            $currency_code = $this->_storemanager->getStore()->getCurrentCurrency()->getCode() ;
             $checkout = null;
 
             $shipping_rate = $grand_total - $subtotal;
