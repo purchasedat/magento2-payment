@@ -86,6 +86,11 @@ class PurchasedatModel extends \Magento\Payment\Model\Method\AbstractMethod
     protected $_storemanager ;
 
     /**
+     * @var \Magento\Framework\Pricing\PriceCurrencyInterface
+     */
+    protected $_priceCurrency;
+
+    /**
      * @var \Magento\Quote\Api\CartRepositoryInterface $quoteRepository
      */
     protected $_quoteRepository;
@@ -110,6 +115,7 @@ class PurchasedatModel extends \Magento\Payment\Model\Method\AbstractMethod
      * @param Cart $cart
      * @param \Magento\Checkout\Model\Session $session
      * @param StoreManagerInterface $storemanager
+     * @param \Magento\Framework\Pricing\PriceCurrencyInterface $priceCurrency
      * @param CurrentCustomer $currentCustomer
      * @param \Magento\Quote\Api\CartRepositoryInterface $quoteRepository
      * @param \Magento\Framework\Model\ResourceModel\AbstractResource|null $resource
@@ -129,6 +135,7 @@ class PurchasedatModel extends \Magento\Payment\Model\Method\AbstractMethod
         \Magento\Checkout\Model\Cart $cart,
         \Magento\Checkout\Model\Session $session,
         \Magento\Store\Model\StoreManagerInterface $storemanager,
+        \Magento\Framework\Pricing\PriceCurrencyInterface $priceCurrency,
         \Magento\Customer\Helper\Session\CurrentCustomer $currentCustomer,
         \Magento\Quote\Api\CartRepositoryInterface $quoteRepository,
         \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
@@ -139,6 +146,7 @@ class PurchasedatModel extends \Magento\Payment\Model\Method\AbstractMethod
         $this->_session = $session ;
         $this->_current_customer = $currentCustomer ;
         $this->_storemanager = $storemanager ;
+        $this->_priceCurrency = $priceCurrency;
         $this->_quoteRepository = $quoteRepository ;
         parent::__construct($context,
             $registry,
@@ -253,18 +261,19 @@ class PurchasedatModel extends \Magento\Payment\Model\Method\AbstractMethod
             $currency_code = $this->_storemanager->getStore()->getCurrentCurrency()->getCode() ;
             $checkout = null;
 
-            $shipping_rate = $grand_total - $subtotal;
+//            $shipping_rate = $grand_total - $subtotal;
+            $shipping_rate = $quote_data['shipping_amount'] ;
             // Create items list
             foreach ($this->_session->getQuote()->getAllItems() as $items) {
                 if ($checkout == null) {
                     $checkout = $options->withCheckout()->addItem(PurchaseCheckoutItem::of((int)$items->getQty(), $items->getSku())
                         ->addName($language, $items->getName())
-                        ->addPrice($currency_code, $this->getNumberFormat($items->getPrice()))
+                        ->addPrice($currency_code, $this->getNumberFormat($this->_priceCurrency->convert($items->getPrice())))
                     );
                 } else {
                     $checkout->addItem(PurchaseCheckoutItem::of((int)$items->getQty(), $items->getSku())
                         ->addName($language, $items->getName())
-                        ->addPrice($currency_code, $this->getNumberFormat($items->getPrice()))
+                        ->addPrice($currency_code, $this->getNumberFormat($this->_priceCurrency->convert($items->getPrice())))
                     );
                 }
             }
