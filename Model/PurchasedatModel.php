@@ -239,7 +239,7 @@ class PurchasedatModel extends \Magento\Payment\Model\Method\AbstractMethod
         $customer = $this->getCustomerInfo($customer_id);
         if ($quote->getGrandTotal() && ($customer->getEmail() || $guest_email != "")) {
             $quote_data = $quote->getData();
-            $grand_total = $quote_data['grand_total'];
+            $grand_total = $quote_data['base_grand_total'];
             $api_key = $this->getConfigData('api_key');
             if ($customer->getEmail()) {
                 $customer_email = $customer->getEmail() ;
@@ -257,21 +257,21 @@ class PurchasedatModel extends \Magento\Payment\Model\Method\AbstractMethod
             $om = \Magento\Framework\App\ObjectManager::getInstance();
             $resolver = $om->get('Magento\Framework\Locale\Resolver');
             $language = substr($resolver->getLocale(), 0, strpos($resolver->getLocale(), "_"));
-            $currency_code = $this->_storemanager->getStore()->getCurrentCurrency()->getCode() ;
+            $currency_code = $this->_storemanager->getStore()->getBaseCurrency()->getCode() ;
             $checkout = null;
 
-            $shipping_rate = $quote_data['shipping_amount'] ;
+            $shipping_rate = $quote_data['base_shipping_amount'] ;
             // Create items list
             foreach ($this->_session->getQuote()->getAllItems() as $items) {
                 if ($checkout == null) {
                     $checkout = $options->withCheckout()->addItem(PurchaseCheckoutItem::of((int)$items->getQty(), $items->getSku())
                         ->addName($language, $items->getName())
-                        ->addPrice($currency_code, $this->getNumberFormat($this->_priceCurrency->convert($items->getPrice())))
+                        ->addPrice($currency_code, $this->getNumberFormat($items->getPrice()))
                     );
                 } else {
                     $checkout->addItem(PurchaseCheckoutItem::of((int)$items->getQty(), $items->getSku())
                         ->addName($language, $items->getName())
-                        ->addPrice($currency_code, $this->getNumberFormat($this->_priceCurrency->convert($items->getPrice())))
+                        ->addPrice($currency_code, $this->getNumberFormat($items->getPrice()))
                     );
                 }
             }
