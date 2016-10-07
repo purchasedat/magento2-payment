@@ -198,6 +198,7 @@ class Finish extends \Magento\Framework\View\Element\Template
                     $order_id =-1;
                 }
                 $this->orderSender->send($order);
+                $order->setTotalPaid($price->getGross());
 
 				// pending transactions are awaiting payment
 				// and can become successful later
