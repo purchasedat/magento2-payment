@@ -11,7 +11,7 @@
             <purchasedat>
                 <active>1</active>
                 <title>Purchased.at</title>
-                <order_status>pending_payment</order_status>
+                <order_status>processing</order_status>
                 <test>1</test>
                 <instructions>You will be redirected to Purchased.at</instructions>
                 <payment_action>true</payment_action>

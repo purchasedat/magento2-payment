@@ -18,6 +18,7 @@
         <div class="actions-toolbar">
             <div class="primary">
                 <a class="action primary continue" href="<?php /* @escapeNotVerified */ echo $block->getUrl() ?>"><span><?php /* @escapeNotVerified */ echo __('Continue Shopping') ?></span></a>
+                <a class="action primary continue" href="<?php echo $block->getUrl('checkout', ['_secure' => true]); ?>"><span><?php /* @escapeNotVerified */ echo __('Proceed to Checkout') ?></span></a>
             </div>
         </div>
         <?php

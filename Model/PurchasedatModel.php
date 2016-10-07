@@ -15,6 +15,7 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Model\Order\Payment\Transaction;
 use Magento\Sales\Model\ResourceModel\Order\Payment\Transaction\CollectionFactory as TransactionCollectionFactory;
 use Magento\Sales\Model\Order\Payment\Transaction as PaymentTransaction;
+use Magento\Sales\Model\Order\Payment\Transaction\Builder;
 use Magento\Payment\Model\InfoInterface;
 use Magento\Framework\App;
 use Magento\Quote\Model\Quote;
@@ -96,6 +97,11 @@ class PurchasedatModel extends \Magento\Payment\Model\Method\AbstractMethod
     protected $_quoteRepository;
 
     /**
+     * @var \Magento\Sales\Model\Order\Payment\Transaction\Builder
+     */
+    protected $_transactionBuilder ;
+
+    /**
      * Test mode or live
      *
      * @var string
@@ -118,6 +124,7 @@ class PurchasedatModel extends \Magento\Payment\Model\Method\AbstractMethod
      * @param \Magento\Framework\Pricing\PriceCurrencyInterface $priceCurrency
      * @param CurrentCustomer $currentCustomer
      * @param \Magento\Quote\Api\CartRepositoryInterface $quoteRepository
+     * @param \Magento\Sales\Model\Order\Payment\Transaction\Builder $transactionBuilder
      * @param \Magento\Framework\Model\ResourceModel\AbstractResource|null $resource
      * @param \Magento\Framework\Data\Collection\AbstractDb|null $resourceCollection
      * @param array $data
@@ -138,6 +145,7 @@ class PurchasedatModel extends \Magento\Payment\Model\Method\AbstractMethod
         \Magento\Framework\Pricing\PriceCurrencyInterface $priceCurrency,
         \Magento\Customer\Helper\Session\CurrentCustomer $currentCustomer,
         \Magento\Quote\Api\CartRepositoryInterface $quoteRepository,
+        \Magento\Sales\Model\Order\Payment\Transaction\Builder $transactionBuilder,
         \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         array $data = []){
@@ -148,6 +156,7 @@ class PurchasedatModel extends \Magento\Payment\Model\Method\AbstractMethod
         $this->_storemanager = $storemanager ;
         $this->_priceCurrency = $priceCurrency;
         $this->_quoteRepository = $quoteRepository ;
+        $this->_transactionBuilder = $transactionBuilder ;
         parent::__construct($context,
             $registry,
             $extensionFactory,
@@ -305,5 +314,53 @@ class PurchasedatModel extends \Magento\Payment\Model\Method\AbstractMethod
         }
         return $paybutton_code;
     }
+
+    /**
+     * Create the transaction for the $order, build it up based on $paymentData, what contains the details of the finished purchased.at transaction
+     * @param object $order
+     * @param object $paymentData
+     * @return string
+     */
+    public function createMagentoTransaction($order, $paymentData)
+    {
+        try {
+            //get payment object from order object
+            $payment = $order->getPayment();
+            $payment->setLastTransId($paymentData->getId());
+            $payment->setTransactionId($paymentData->getId());
+            $payment->setAdditionalInformation(
+                [\Magento\Sales\Model\Order\Payment\Transaction::RAW_DETAILS => (array) $paymentData]
+            );
+            $formatedPrice = $order->getBaseCurrency()->formatTxt(
+                $order->getGrandTotal()
+            );
+
+            $message = __('The authorized amount is %1.', $formatedPrice);
+            //get the object of builder class
+            $trans = $this->_transactionBuilder;
+            $transaction = $trans->setPayment($payment)
+                ->setOrder($order)
+                ->setTransactionId($paymentData->getId())
+                ->setAdditionalInformation(
+                    [\Magento\Sales\Model\Order\Payment\Transaction::RAW_DETAILS => (array) $paymentData]
+                )
+                ->setFailSafe(true)
+                //build method creates the transaction and returns the object
+                ->build(\Magento\Sales\Model\Order\Payment\Transaction::TYPE_CAPTURE);
+
+            $payment->addTransactionCommentsToOrder(
+                $transaction,
+                $message
+            );
+            $payment->setParentTransactionId(null);
+            $payment->save();
+            $order->save();
+
+            return  $transaction->save()->getTransactionId();
+        } catch (Exception $e) {
+            //log errors here
+        }
+    }
+
 
 }

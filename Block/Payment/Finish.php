@@ -217,6 +217,7 @@ class Finish extends \Magento\Framework\View\Element\Template
                 if ($transaction->isTest()) {
                     $result_message .= "<br><strong>This was a TEST transaction</strong><br />" ;
                 }
+                $this->_patModel->createMagentoTransaction($order, $result->result) ;
             }
         }
         $this->addData(
