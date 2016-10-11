@@ -198,7 +198,8 @@ class Finish extends \Magento\Framework\View\Element\Template
                     $order_id =-1;
                 }
                 $this->orderSender->send($order);
-                $order->setTotalPaid($price->getGross());
+                $order->setBaseTotalPaid($price->getGross());
+                $order->setTotalPaid($this->convertPrice($price->getGross()));
 
 				// pending transactions are awaiting payment
 				// and can become successful later
@@ -230,4 +231,17 @@ class Finish extends \Magento\Framework\View\Element\Template
             ]
         );
     }
+
+    public function convertPrice($amount = 0, $store = null, $currency = null)
+    {
+        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+        $priceCurrencyObject = $objectManager->get('Magento\Framework\Pricing\PriceCurrencyInterface');
+        $storeManager = $objectManager->get('Magento\Store\Model\StoreManagerInterface');
+        if ($store == null) {
+            $store = $storeManager->getStore()->getStoreId();
+        }
+        $rate = $priceCurrencyObject->convert($amount, $store, $currency);
+        return $rate ;
+    }
+
 }

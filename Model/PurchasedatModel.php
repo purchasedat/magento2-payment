@@ -332,7 +332,7 @@ class PurchasedatModel extends \Magento\Payment\Model\Method\AbstractMethod
                 [\Magento\Sales\Model\Order\Payment\Transaction::RAW_DETAILS => (array) $paymentData]
             );
             $formatedPrice = $order->getBaseCurrency()->formatTxt(
-                $order->getGrandTotal()
+                $order->getBaseGrandTotal()
             );
 
             $message = __('The authorized amount is %1.', $formatedPrice);
