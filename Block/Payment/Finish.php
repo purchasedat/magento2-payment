@@ -232,7 +232,13 @@ class Finish extends \Magento\Framework\View\Element\Template
         );
     }
 
-    public function convertPrice($amount = 0, $store = null, $currency = null)
+    /**
+     * Convert a base price to the current currency, or to $currency, and return it
+     * @param float $amount
+     * @param object $store = null
+     * @param object $currency = null
+     */
+    public function convertPrice($amount, $store = null, $currency = null)
     {
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
         $priceCurrencyObject = $objectManager->get('Magento\Framework\Pricing\PriceCurrencyInterface');

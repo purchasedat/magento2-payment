@@ -64,7 +64,7 @@ class PurchasedatModel extends \Magento\Payment\Model\Method\AbstractMethod
      *
      * @var bool
      */
-    protected $_isOffline = true;
+    protected $_isOffline = false;
 
     /**
      * @var \Magento\Checkout\Model\Cart
@@ -346,7 +346,7 @@ class PurchasedatModel extends \Magento\Payment\Model\Method\AbstractMethod
                 )
                 ->setFailSafe(true)
                 //build method creates the transaction and returns the object
-                ->build(\Magento\Sales\Model\Order\Payment\Transaction::TYPE_CAPTURE);
+                ->build(\Magento\Sales\Model\Order\Payment\Transaction::TYPE_ORDER);
 
             $payment->addTransactionCommentsToOrder(
                 $transaction,
