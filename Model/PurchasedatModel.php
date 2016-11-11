@@ -22,6 +22,7 @@ use Magento\Quote\Model\Quote;
 use Magento\Checkout\Model\Cart;
 use Magento\Customer\Helper\Session\CurrentCustomer;
 use Magento\Store\Model\StoreManagerInterface;
+use Magento\Sales\Model\Order;
 
 
 /**
@@ -102,6 +103,13 @@ class PurchasedatModel extends \Magento\Payment\Model\Method\AbstractMethod
     protected $_transactionBuilder ;
 
     /**
+     * Helper
+     *
+     * @var \PurchasedAt\Magento2Payment\Helper\Data
+     */
+    protected $_helper;
+
+    /**
      * Test mode or live
      *
      * @var string
@@ -125,6 +133,7 @@ class PurchasedatModel extends \Magento\Payment\Model\Method\AbstractMethod
      * @param CurrentCustomer $currentCustomer
      * @param \Magento\Quote\Api\CartRepositoryInterface $quoteRepository
      * @param \Magento\Sales\Model\Order\Payment\Transaction\Builder $transactionBuilder
+     * @param \PurchasedAt\Magento2Payment\Helper\Data $helper,
      * @param \Magento\Framework\Model\ResourceModel\AbstractResource|null $resource
      * @param \Magento\Framework\Data\Collection\AbstractDb|null $resourceCollection
      * @param array $data
@@ -146,6 +155,7 @@ class PurchasedatModel extends \Magento\Payment\Model\Method\AbstractMethod
         \Magento\Customer\Helper\Session\CurrentCustomer $currentCustomer,
         \Magento\Quote\Api\CartRepositoryInterface $quoteRepository,
         \Magento\Sales\Model\Order\Payment\Transaction\Builder $transactionBuilder,
+        \PurchasedAt\Magento2Payment\Helper\Data $helper,
         \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
         \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         array $data = []){
@@ -157,6 +167,7 @@ class PurchasedatModel extends \Magento\Payment\Model\Method\AbstractMethod
         $this->_priceCurrency = $priceCurrency;
         $this->_quoteRepository = $quoteRepository ;
         $this->_transactionBuilder = $transactionBuilder ;
+        $this->_helper = $helper;
         parent::__construct($context,
             $registry,
             $extensionFactory,
@@ -231,6 +242,21 @@ class PurchasedatModel extends \Magento\Payment\Model\Method\AbstractMethod
         $stateObject->setIsNotified(false);
     }
 
+    /**
+     * Generate a transaction ID for the quote transaction. The ID first characters will be the reserved order ID characters
+     * @param \Magento\Quote\Model\Quote $quote
+     * @return string
+     */
+    public function generateTransactionId($quote) {
+        $reserved_order_id = $quote->getReservedOrderId() ;
+        $chars='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789' ;
+        $length = 32;
+        $l=strlen($chars)-1; $result='';
+        while($length-->strlen($reserved_order_id . "-")) $result.=$chars{mt_rand(0,$l)};
+        $result = $reserved_order_id . "-" . $result ;
+        return $result ;
+    }
+    
 
     /**
      * Get and return the quote details in the expected structure by purchased.at and api key in an array with two fields
@@ -263,6 +289,8 @@ class PurchasedatModel extends \Magento\Payment\Model\Method\AbstractMethod
             }
             $baseUrl = $this->_storemanager->getStore()->getBaseUrl();
             $options->setRedirectUrl($baseUrl . 'purchasedat/payment/finish');
+            $options->setNotificationUrl($baseUrl . 'purchasedat/payment/notification');
+            $options->setTransactionExternalId($this->generateTransactionId($quote)) ;
             $om = \Magento\Framework\App\ObjectManager::getInstance();
             $resolver = $om->get('Magento\Framework\Locale\Resolver');
             $language = substr($resolver->getLocale(), 0, strpos($resolver->getLocale(), "_"));
@@ -319,41 +347,97 @@ class PurchasedatModel extends \Magento\Payment\Model\Method\AbstractMethod
      * Create the transaction for the $order, build it up based on $paymentData, what contains the details of the finished purchased.at transaction
      * @param object $order
      * @param object $paymentData
+     * @param string $parentTransactionId
+     * @param bool $refund
      * @return string
      */
-    public function createMagentoTransaction($order, $paymentData)
+    public function createMagentoTransaction($order = null, $paymentData = null, $parentTransactionId = null, $refund = false)
     {
         try {
             //get payment object from order object
+
             $payment = $order->getPayment();
-            $payment->setLastTransId($paymentData->getId());
-            $payment->setTransactionId($paymentData->getId());
+            $payment->setLastTransId($paymentData->getExternalId());
+            $payment->setTransactionId($paymentData->getExternalId());
             $payment->setAdditionalInformation(
                 [\Magento\Sales\Model\Order\Payment\Transaction::RAW_DETAILS => (array) $paymentData]
             );
+            $payment->setTransactionAdditionalInfo("transactionID", $paymentData->getId()); 
+            $payment->setTransactionAdditionalInfo("externalTransactionID", $paymentData->getExternalId());
+            $payment->setTransactionAdditionalInfo("state", $paymentData->getState());
+            $payment->setTransactionAdditionalInfo("timestamp", $paymentData->getCreated());
+            $payment->setTransactionAdditionalInfo("revisionNumber", $paymentData->getRevisionNumber());
+            $transaction_type = \Magento\Sales\Model\Order\Payment\Transaction::TYPE_ORDER ;
+            if ($refund) {
+                $pat_transaction = $paymentData->result;
+                $transaction_type = \Magento\Sales\Model\Order\Payment\Transaction::TYPE_REFUND ;
+            }
+            else
+            {
+                $pat_transaction = $paymentData ;
+            }
+
+            $default_order_state = $this->getConfigData('order_status');
+
             $formatedPrice = $order->getBaseCurrency()->formatTxt(
                 $order->getBaseGrandTotal()
             );
+
+            $transaction_closed = true ;
+            $price = $pat_transaction->getPrice(); 
+            if (!$refund) {
+                if ($pat_transaction->getState() == 'successful') {
+                    $order->setBaseTotalPaid($price->getGross());
+                    $order->setTotalPaid($this->_helper->convertPrice($price->getGross()));
+                    $order->setStatus($default_order_state);
+                } else if ($pat_transaction->getState() == 'pending' || $pat_transaction->getState() == 'processing') {
+                    $order->setBaseTotalDue($price->getGross());
+                    $order->setTotalDue($this->_helper->convertPrice($price->getGross()));
+                    $order->setStatus(Order::STATE_PENDING_PAYMENT);
+                    $transaction_closed = false ;
+                } else if ($pat_transaction->getState() == 'failed') {
+                    $order->setBaseTotalDue($price->getGross());
+                    $order->setTotalDue($this->_helper->convertPrice($price->getGross()));
+                    $order->setStatus(Order::STATE_CANCELED);
+                }
+            }
+            else
+            {
+                if ($pat_transaction->getNewState() == "refund") {
+                    $order->setBaseTotalDue($price->getGross());
+                    $order->setTotalDue($this->_helper->convertPrice($price->getGross()));
+                    $order->setStatus(Order::STATE_CANCELED);
+                }
+                else if ($pat_transaction->getNewState() == "chargeback") {
+                    $order->setBaseTotalDue($price->getGross());
+                    $order->setTotalDue($this->_helper->convertPrice($price->getGross()));
+                    $order->setStatus(Order::STATE_CANCELED);
+                    $transaction_closed = false ;
+                }
+            }
+            $payment->setIsTransactionClosed($transaction_closed);
+
 
             $message = __('The authorized amount is %1.', $formatedPrice);
             //get the object of builder class
             $trans = $this->_transactionBuilder;
             $transaction = $trans->setPayment($payment)
                 ->setOrder($order)
-                ->setTransactionId($paymentData->getId())
+                ->setTransactionId($paymentData->getExternalId())
                 ->setAdditionalInformation(
                     [\Magento\Sales\Model\Order\Payment\Transaction::RAW_DETAILS => (array) $paymentData]
                 )
                 ->setFailSafe(true)
                 //build method creates the transaction and returns the object
-                ->build(\Magento\Sales\Model\Order\Payment\Transaction::TYPE_ORDER);
+                ->build($transaction_type); 
 
             $payment->addTransactionCommentsToOrder(
                 $transaction,
                 $message
             );
-            $payment->setParentTransactionId(null);
+            $payment->setParentTransactionId($parentTransactionId);
             $payment->save();
+
             $order->save();
 
             return  $transaction->save()->getTransactionId();

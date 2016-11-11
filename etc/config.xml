@@ -16,6 +16,7 @@
                 <instructions>You will be redirected to Purchased.at</instructions>
                 <payment_action>true</payment_action>
                 <model>PurchasedAt\Magento2Payment\Model\PurchasedatModel</model>
+                <payment_failed_template>payment_us_purchasedat_payment_pat_failed_template</payment_failed_template>
             </purchasedat>
         </payment>
     </default>

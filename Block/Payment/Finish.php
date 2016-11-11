@@ -7,6 +7,7 @@ use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender;
 use PurchasedAt\API;
 use PurchasedAt\APIClient;
+use PurchasedAt\Magento2Payment\Helper;
 
 class Finish extends \Magento\Framework\View\Element\Template
 {
@@ -128,6 +129,28 @@ class Finish extends \Magento\Framework\View\Element\Template
     }
 
     /**
+     * Send an e-mail to the administrator about the failed transaction
+     * @param \Magento\Quote\Model\Quote $checkout
+     * @param object $transaction_details
+     */
+    public function sendTransactionEmail($checkout, $transaction_details) {
+        $transactionVariables = array();
+        $transactionVariables['transactionID'] = $transaction_details->getID();
+        $transactionVariables['transactionState'] = $transaction_details->getState();
+        $test_mode = "Live" ;
+        if ($transaction_details->isTest()) {
+            $test_mode = "Test" ;
+        }
+        $transactionVariables['transactionTest'] = $test_mode;
+
+        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+        $objectManager->get('PurchasedAt\Magento2Payment\Helper\Email')->mailSendMethod(
+            $transactionVariables,
+            $checkout
+        );
+    }
+    
+    /**
      * Prepares block data and process the response.
      * If the purchase process was successful, create the order, otherwise show the error message
      *
@@ -136,6 +159,7 @@ class Finish extends \Magento\Framework\View\Element\Template
     protected function prepareBlockData()
     {
         $order_id = -1 ;
+        $quote = $this->_cart->getQuote();
         $api_key = $this->_helper->getConfig('payment/purchasedat/api_key');
         $apiClient = new APIClient($api_key);
 
@@ -164,6 +188,7 @@ class Finish extends \Magento\Framework\View\Element\Template
                 if ($transaction->isTest()) {
                     $error_message .= "<br><strong>This was a TEST transaction</strong><br />" ;
                 }
+                $this->sendTransactionEmail($quote, $transaction);
             }
             else
             {
@@ -173,7 +198,6 @@ class Finish extends \Magento\Framework\View\Element\Template
 
 				// Save quote to order
 
-                $quote = $this->_cart->getQuote();
                 $quote->setPaymentMethod('purchasedat'); //payment method
                 $om = \Magento\Framework\App\ObjectManager::getInstance();
                 $customerSession = $om->get('Magento\Customer\Model\Session');
@@ -198,14 +222,13 @@ class Finish extends \Magento\Framework\View\Element\Template
                     $order_id =-1;
                 }
                 $this->orderSender->send($order);
-                $order->setBaseTotalPaid($price->getGross());
-                $order->setTotalPaid($this->convertPrice($price->getGross()));
 
 				// pending transactions are awaiting payment
 				// and can become successful later
                 if( $transaction->getState() == 'pending' ) {
                     $result_message = 'We received your order, but are still ' .
                         'waiting for confirmation of the payment.<br>';
+                    $order->setStatus(Order::STATE_PENDING_PAYMENT) ;               //!!!!!!!!!!!!!!!!!!!!!!!!!
                 }
 
                 $result_message .= sprintf('Transaction details:<br />Id:%s<br />Customer:%s (country:%s)<br /> ' .
@@ -219,6 +242,10 @@ class Finish extends \Magento\Framework\View\Element\Template
                 if ($transaction->isTest()) {
                     $result_message .= "<br><strong>This was a TEST transaction</strong><br />" ;
                 }
+                else if ($transaction->getState() == 'successful') {
+                    $order->setBaseTotalPaid($price->getGross());
+                    $order->setTotalPaid($this->_helper->convertPrice($price->getGross()));
+                }
                 $this->_patModel->createMagentoTransaction($order, $result->result) ;
             }
         }
@@ -230,24 +257,6 @@ class Finish extends \Magento\Framework\View\Element\Template
 
             ]
         );
-    }
-
-    /**
-     * Convert a base price to the current currency, or to $currency, and return it
-     * @param float $amount
-     * @param object $store = null
-     * @param object $currency = null
-     */
-    public function convertPrice($amount, $store = null, $currency = null)
-    {
-        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-        $priceCurrencyObject = $objectManager->get('Magento\Framework\Pricing\PriceCurrencyInterface');
-        $storeManager = $objectManager->get('Magento\Store\Model\StoreManagerInterface');
-        if ($store == null) {
-            $store = $storeManager->getStore()->getStoreId();
-        }
-        $rate = $priceCurrencyObject->convert($amount, $store, $currency);
-        return $rate ;
     }
 
 }
