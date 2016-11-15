@@ -3,7 +3,6 @@
 namespace PurchasedAt\Magento2Payment\Controller\Payment;
 
 use PurchasedAt\API;
-use PurchasedAt\APIClient;
 
 
 class Notification extends \Magento\Framework\App\Action\Action
@@ -14,7 +13,6 @@ class Notification extends \Magento\Framework\App\Action\Action
 
     /** @var \PurchasedAt\Magento2Payment\Model\PurchasedatModel */
     protected $_patModel;
-
 
     /**
      * Finish constructor.
@@ -27,6 +25,7 @@ class Notification extends \Magento\Framework\App\Action\Action
     ) {
         $this->_patModel = $patModel;
         parent::__construct($context);
+        $this->logRequest();
     }
     /**
      * Load the page defined in view/frontend/layout/purchasedat_payment_finish.xml
@@ -39,9 +38,24 @@ class Notification extends \Magento\Framework\App\Action\Action
         $helper = $objectManager->get('PurchasedAt\Magento2Payment\Helper\Data');
         $api_key = $helper->getConfig('payment/purchasedat/api_key');
 
-        $apiClient = new Sdk\APIClient($api_key);
+        $signatureHeader = array_key_exists('HTTP_X_PAT_SIGNATURE', $_SERVER) ? $_SERVER['HTTP_X_PAT_SIGNATURE'] : null;
+        /**
+         * @var \Magento\Framework\App\Request\Http $req
+         */
+        $request = $objectManager->get('\Magento\Framework\App\Request\Http');
+        $requestBody = $request->getContent();
 
-        $result = $apiClient->parseTransactionNotificationForRequest();
+        $apiClient = new APIClient($api_key);
+
+        $result = $apiClient->parseTransactionNotification($requestBody, $signatureHeader);
+
+        // $result = $apiClient->parseTransactionNotificationForRequest();
+
+        /**
+         * FOR TESTING
+         */
+        $apiClient->acknowledgeTransactionNotification();
+        exit;
 
         if(!$result->success) {
             error_log(sprintf('failed to process notification: %s',$result->errorCode));
@@ -68,4 +82,50 @@ class Notification extends \Magento\Framework\App\Action\Action
         }
         $apiClient->acknowledgeTransactionNotification();
     }
+
+    protected function logRequest(){
+    	error_reporting(E_ERROR);
+    	ini_set("display_errors", 1);
+
+    	$objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+
+		/**
+		 * @var \Magento\Framework\App\Request\Http $req
+		 */
+    	$request = $objectManager->get('\Magento\Framework\App\Request\Http');
+    	$requestBody = $request->getContent();
+
+    	$data = sprintf(
+    		"%s %s %s\n",
+    		$_SERVER['REQUEST_METHOD'],
+    		$_SERVER['REQUEST_URI'],
+    		$_SERVER['SERVER_PROTOCOL']
+    	);
+
+    	$headerList = [];
+    	foreach ($_SERVER as $name => $value) {
+    		if (preg_match('/^HTTP_/',$name)) {
+    			// convert HTTP_HEADER_NAME to Header-Name
+    			$name = strtr(substr($name,5),'_',' ');
+    			$name = ucwords(strtolower($name));
+    			$name = strtr($name,' ','-');
+    			// add to list
+    			$headerList[$name] = $value;
+    		}
+    	}
+
+    	foreach ($headerList as $name => $value) {
+    		$data .= $name . ': ' . $value . "\n";
+    	}
+    	$data .= "\n" . $requestBody . "\n";
+
+    	$targetFile = getcwd() . DIRECTORY_SEPARATOR . "var"  . DIRECTORY_SEPARATOR . "log"  . DIRECTORY_SEPARATOR .  "http_req_" . date("Y-m-d_H:i:s") . "-" . substr(md5($data . time()), 0, 8) . ".log";
+
+    	file_put_contents(
+    		$targetFile,
+    		$data
+    	);
+
+    }
+
 }
