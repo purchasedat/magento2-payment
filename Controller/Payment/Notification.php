@@ -25,7 +25,7 @@ class Notification extends \Magento\Framework\App\Action\Action
     ) {
         $this->_patModel = $patModel;
         parent::__construct($context);
-        $this->logRequest();
+//        $this->logRequest();
     }
     /**
      * Load the page defined in view/frontend/layout/purchasedat_payment_finish.xml
@@ -38,24 +38,9 @@ class Notification extends \Magento\Framework\App\Action\Action
         $helper = $objectManager->get('PurchasedAt\Magento2Payment\Helper\Data');
         $api_key = $helper->getConfig('payment/purchasedat/api_key');
 
-        $signatureHeader = array_key_exists('HTTP_X_PAT_SIGNATURE', $_SERVER) ? $_SERVER['HTTP_X_PAT_SIGNATURE'] : null;
-        /**
-         * @var \Magento\Framework\App\Request\Http $req
-         */
-        $request = $objectManager->get('\Magento\Framework\App\Request\Http');
-        $requestBody = $request->getContent();
+        $apiClient = new Sdk\APIClient($api_key);
 
-        $apiClient = new APIClient($api_key);
-
-        $result = $apiClient->parseTransactionNotification($requestBody, $signatureHeader);
-
-        // $result = $apiClient->parseTransactionNotificationForRequest();
-
-        /**
-         * FOR TESTING
-         */
-        $apiClient->acknowledgeTransactionNotification();
-        exit;
+        $result = $apiClient->parseTransactionNotificationForRequest();
 
         if(!$result->success) {
             error_log(sprintf('failed to process notification: %s',$result->errorCode));
@@ -66,19 +51,18 @@ class Notification extends \Magento\Framework\App\Action\Action
         $new_state = $notification->getNewState() ;
         $refund = false ;
         $parent_transaction_id = null ;
-        if ($new_state == "refund" || $new_state == "chargeback") {
-            $refund = true ;
-            $parent_transaction_id = $notification->getExternalTransactionId();
-
-        }
         $result = $apiClient->fetchTransaction($notification->getTransaction());
 
         $magento_transaction_id = $notification->getExternalTransactionId() ;
         $order_id = substr($magento_transaction_id, 0, strpos($magento_transaction_id, "-")) ;
         $order = $objectManager->create('Magento\Sales\Model\Order')->loadByIncrementId($order_id);
+        if ($new_state == "refund" || $new_state == "chargeback") {
+            $refund = true ;
+            $parent_transaction_id = $order->getPayment()->getLastTransId();
+        }
 
         if ($order->getPayment() != null) {
-            $this->_patModel->createMagentoTransaction($order, $result->result, $parent_transaction_id, $refund);
+            $this->_patModel->createMagentoTransaction($order, $result->result, $notification, $parent_transaction_id, $refund);
         }
         $apiClient->acknowledgeTransactionNotification();
     }

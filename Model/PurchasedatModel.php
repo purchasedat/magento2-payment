@@ -247,13 +247,22 @@ class PurchasedatModel extends \Magento\Payment\Model\Method\AbstractMethod
      * @param \Magento\Quote\Model\Quote $quote
      * @return string
      */
-    public function generateTransactionId($quote) {
+    public function generateTransactionIdFromQuote($quote) {
         $reserved_order_id = $quote->getReservedOrderId() ;
+        return $this->generateTransactionId($reserved_order_id) ;
+    }
+
+    /**
+     * Generate a transaction ID based on an order ID
+     * @param string $order_id
+     * @return string
+     */
+    public function generateTransactionId($order_id) {
         $chars='abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789' ;
         $length = 32;
         $l=strlen($chars)-1; $result='';
-        while($length-->strlen($reserved_order_id . "-")) $result.=$chars{mt_rand(0,$l)};
-        $result = $reserved_order_id . "-" . $result ;
+        while($length-->strlen($order_id . "-")) $result.=$chars{mt_rand(0,$l)};
+        $result = $order_id . "-" . $result ;
         return $result ;
     }
     
@@ -290,7 +299,7 @@ class PurchasedatModel extends \Magento\Payment\Model\Method\AbstractMethod
             $baseUrl = $this->_storemanager->getStore()->getBaseUrl();
             $options->setRedirectUrl($baseUrl . 'purchasedat/payment/finish');
             $options->setNotificationUrl($baseUrl . 'purchasedat/payment/notification');
-            $options->setTransactionExternalId($this->generateTransactionId($quote)) ;
+            $options->setTransactionExternalId($this->generateTransactionIdFromQuote($quote)) ;
             $om = \Magento\Framework\App\ObjectManager::getInstance();
             $resolver = $om->get('Magento\Framework\Locale\Resolver');
             $language = substr($resolver->getLocale(), 0, strpos($resolver->getLocale(), "_"));
@@ -347,29 +356,34 @@ class PurchasedatModel extends \Magento\Payment\Model\Method\AbstractMethod
      * Create the transaction for the $order, build it up based on $paymentData, what contains the details of the finished purchased.at transaction
      * @param object $order
      * @param object $paymentData
+     * @param Purchasedat\API\TransactionNotification $notification_transaction
      * @param string $parentTransactionId
      * @param bool $refund
      * @return string
      */
-    public function createMagentoTransaction($order = null, $paymentData = null, $parentTransactionId = null, $refund = false)
+    public function createMagentoTransaction($order = null, $paymentData = null, $notification_transaction = null, $parentTransactionId = null, $refund = false)
     {
         try {
             //get payment object from order object
+            $transaction_id = $paymentData->getExternalId() ;
+            if ($refund) {
+                $transaction_id = $this->generateTransactionId($order->getRealOrderId()) ;
+            }
 
             $payment = $order->getPayment();
-            $payment->setLastTransId($paymentData->getExternalId());
-            $payment->setTransactionId($paymentData->getExternalId());
+            $payment->setLastTransId($transaction_id);
+            $payment->setTransactionId($transaction_id);
             $payment->setAdditionalInformation(
                 [\Magento\Sales\Model\Order\Payment\Transaction::RAW_DETAILS => (array) $paymentData]
             );
-            $payment->setTransactionAdditionalInfo("transactionID", $paymentData->getId()); 
-            $payment->setTransactionAdditionalInfo("externalTransactionID", $paymentData->getExternalId());
+            $payment->setTransactionAdditionalInfo("transactionID", $paymentData->getId());                 //!!!!!!!!!!!!!!!!!!
+            $payment->setTransactionAdditionalInfo("externalTransactionID", $transaction_id);
             $payment->setTransactionAdditionalInfo("state", $paymentData->getState());
             $payment->setTransactionAdditionalInfo("timestamp", $paymentData->getCreated());
             $payment->setTransactionAdditionalInfo("revisionNumber", $paymentData->getRevisionNumber());
             $transaction_type = \Magento\Sales\Model\Order\Payment\Transaction::TYPE_ORDER ;
             if ($refund) {
-                $pat_transaction = $paymentData->result;
+                $pat_transaction = $notification_transaction;
                 $transaction_type = \Magento\Sales\Model\Order\Payment\Transaction::TYPE_REFUND ;
             }
             else
@@ -384,7 +398,7 @@ class PurchasedatModel extends \Magento\Payment\Model\Method\AbstractMethod
             );
 
             $transaction_closed = true ;
-            $price = $pat_transaction->getPrice(); 
+            $price = $paymentData->getPrice();                                                          //!!!!!!!!!!!!!!!!!!!
             if (!$refund) {
                 if ($pat_transaction->getState() == 'successful') {
                     $order->setBaseTotalPaid($price->getGross());
@@ -398,20 +412,24 @@ class PurchasedatModel extends \Magento\Payment\Model\Method\AbstractMethod
                 } else if ($pat_transaction->getState() == 'failed') {
                     $order->setBaseTotalDue($price->getGross());
                     $order->setTotalDue($this->_helper->convertPrice($price->getGross()));
-                    $order->setStatus(Order::STATE_CANCELED);
+                    $order->setStatus("pat_payment_failed");
                 }
             }
             else
             {
                 if ($pat_transaction->getNewState() == "refund") {
+                    $order->setBaseTotalPaid(0);
+                    $order->setTotalPaid(0);
                     $order->setBaseTotalDue($price->getGross());
                     $order->setTotalDue($this->_helper->convertPrice($price->getGross()));
-                    $order->setStatus(Order::STATE_CANCELED);
+                    $order->setStatus("pat_payment_reversed");
                 }
                 else if ($pat_transaction->getNewState() == "chargeback") {
+                    $order->setBaseTotalPaid(0);
+                    $order->setTotalPaid(0);
                     $order->setBaseTotalDue($price->getGross());
                     $order->setTotalDue($this->_helper->convertPrice($price->getGross()));
-                    $order->setStatus(Order::STATE_CANCELED);
+                    $order->setStatus("pat_payment_reversed");
                     $transaction_closed = false ;
                 }
             }
@@ -421,21 +439,23 @@ class PurchasedatModel extends \Magento\Payment\Model\Method\AbstractMethod
             $message = __('The authorized amount is %1.', $formatedPrice);
             //get the object of builder class
             $trans = $this->_transactionBuilder;
+            if ($parentTransactionId != null){
+                $payment->setParentTransactionId($parentTransactionId);
+            }
             $transaction = $trans->setPayment($payment)
                 ->setOrder($order)
-                ->setTransactionId($paymentData->getExternalId())
+                ->setTransactionId($transaction_id)
                 ->setAdditionalInformation(
                     [\Magento\Sales\Model\Order\Payment\Transaction::RAW_DETAILS => (array) $paymentData]
                 )
                 ->setFailSafe(true)
                 //build method creates the transaction and returns the object
-                ->build($transaction_type); 
+                ->build($transaction_type);                                     //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
             $payment->addTransactionCommentsToOrder(
                 $transaction,
                 $message
             );
-            $payment->setParentTransactionId($parentTransactionId);
             $payment->save();
 
             $order->save();
