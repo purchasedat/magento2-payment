@@ -3,6 +3,7 @@
 namespace PurchasedAt\Magento2Payment\Controller\Payment;
 
 use PurchasedAt\API;
+use PurchasedAt\APIClient;
 
 
 class Notification extends \Magento\Framework\App\Action\Action
@@ -38,7 +39,7 @@ class Notification extends \Magento\Framework\App\Action\Action
         $helper = $objectManager->get('PurchasedAt\Magento2Payment\Helper\Data');
         $api_key = $helper->getConfig('payment/purchasedat/api_key');
 
-        $apiClient = new Sdk\APIClient($api_key);
+        $apiClient = new APIClient($api_key);
 
         $result = $apiClient->parseTransactionNotificationForRequest();
 
