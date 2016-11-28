@@ -25,7 +25,7 @@ class Notification extends \Magento\Framework\App\Action\Action
     ) {
         $this->_patModel = $patModel;
         parent::__construct($context);
-//        $this->logRequest();
+       $this->logRequest();
     }
     /**
      * Load the page defined in view/frontend/layout/purchasedat_payment_finish.xml
