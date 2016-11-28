@@ -149,7 +149,7 @@ class Finish extends \Magento\Framework\View\Element\Template
             $checkout
         );
     }
-    
+
     /**
      * Prepares block data and process the response.
      * If the purchase process was successful, create the order, otherwise show the error message
@@ -226,7 +226,7 @@ class Finish extends \Magento\Framework\View\Element\Template
 				// pending transactions are awaiting payment
 				// and can become successful later
                 if( $transaction->getState() == 'pending' ) {
-                    $result_message = 'We received your order, but are still ' .
+                    $result_message = 'We received your order, but we are still ' .
                         'waiting for confirmation of the payment.<br>';
                     $order->setStatus(Order::STATE_PENDING_PAYMENT) ;               //!!!!!!!!!!!!!!!!!!!!!!!!!
                 }
