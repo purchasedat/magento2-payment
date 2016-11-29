@@ -230,6 +230,10 @@ class Finish extends \Magento\Framework\View\Element\Template
                         'waiting for confirmation of the payment.<br>';
                     $order->setStatus(Order::STATE_PENDING_PAYMENT) ;               //!!!!!!!!!!!!!!!!!!!!!!!!!
                 }
+                else if ($transaction->getState() == 'successful') {
+                    $order->setBaseTotalPaid($price->getGross());
+                    $order->setTotalPaid($this->_helper->convertPrice($price->getGross()));
+                }
 
                 $result_message .= sprintf('Transaction details:<br />Id:%s<br />Customer:%s (country:%s)<br /> ' .
                     'Total price:%s %s',
@@ -241,10 +245,6 @@ class Finish extends \Magento\Framework\View\Element\Template
 
                 if ($transaction->isTest()) {
                     $result_message .= "<br><strong>This was a TEST transaction</strong><br />" ;
-                }
-                else if ($transaction->getState() == 'successful') {
-                    $order->setBaseTotalPaid($price->getGross());
-                    $order->setTotalPaid($this->_helper->convertPrice($price->getGross()));
                 }
                 $this->_patModel->createMagentoTransaction($order, $result->result) ;
             }
