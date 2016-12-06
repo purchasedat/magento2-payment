@@ -27,21 +27,6 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
-     * @param float $price
-     * @param bool $format
-     * @return float
-     */
-/*
-//    Ez miért lett ilyen?
-    public function convertPrice($price, $format = true)
-    {
-    	return $format
-    	? $this->priceCurrency->convertAndFormat($price)
-    	: $this->priceCurrency->convert($price);
-    }
-*/
-
-    /**
      * Convert a base price to the current currency, or to $currency, and return it
      * @param float $amount
      * @param object $store = null

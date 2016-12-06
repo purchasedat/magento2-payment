@@ -265,7 +265,7 @@ class PurchasedatModel extends \Magento\Payment\Model\Method\AbstractMethod
         $result = $order_id . "-" . $result ;
         return $result ;
     }
-    
+
 
     /**
      * Get and return the quote details in the expected structure by purchased.at and api key in an array with two fields
@@ -376,7 +376,7 @@ class PurchasedatModel extends \Magento\Payment\Model\Method\AbstractMethod
             $payment->setAdditionalInformation(
                 [\Magento\Sales\Model\Order\Payment\Transaction::RAW_DETAILS => (array) $paymentData]
             );
-            $payment->setTransactionAdditionalInfo("transactionID", $paymentData->getId());                 //!!!!!!!!!!!!!!!!!!
+            $payment->setTransactionAdditionalInfo("transactionID", $paymentData->getId());
             $payment->setTransactionAdditionalInfo("externalTransactionID", $transaction_id);
             $payment->setTransactionAdditionalInfo("state", $paymentData->getState());
             $payment->setTransactionAdditionalInfo("timestamp", $paymentData->getCreated());
@@ -398,7 +398,7 @@ class PurchasedatModel extends \Magento\Payment\Model\Method\AbstractMethod
             );
 
             $transaction_closed = true ;
-            $price = $paymentData->getPrice();                                                          //!!!!!!!!!!!!!!!!!!!
+            $price = $paymentData->getPrice();
             if (!$refund) {
                 if ($pat_transaction->getState() == 'successful') {
                     $order->setBaseTotalPaid($price->getGross());
@@ -450,7 +450,7 @@ class PurchasedatModel extends \Magento\Payment\Model\Method\AbstractMethod
                 )
                 ->setFailSafe(true)
                 //build method creates the transaction and returns the object
-                ->build($transaction_type);                                     //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                ->build($transaction_type);
 
             $payment->addTransactionCommentsToOrder(
                 $transaction,

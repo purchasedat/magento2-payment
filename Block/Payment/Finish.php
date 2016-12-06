@@ -228,7 +228,7 @@ class Finish extends \Magento\Framework\View\Element\Template
                 if( $transaction->getState() == 'pending' ) {
                     $result_message = 'We received your order, but we are still ' .
                         'waiting for confirmation of the payment.<br>';
-                    $order->setStatus(Order::STATE_PENDING_PAYMENT) ;               //!!!!!!!!!!!!!!!!!!!!!!!!!
+                    $order->setStatus(Order::STATE_PENDING_PAYMENT);
                 }
                 else if ($transaction->getState() == 'successful') {
                     $order->setBaseTotalPaid($price->getGross());

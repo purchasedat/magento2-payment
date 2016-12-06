@@ -28,6 +28,7 @@ class Notification extends \Magento\Framework\App\Action\Action
         parent::__construct($context);
        $this->logRequest();
     }
+
     /**
      * Load the page defined in view/frontend/layout/purchasedat_payment_finish.xml
      *
@@ -66,51 +67,6 @@ class Notification extends \Magento\Framework\App\Action\Action
             $this->_patModel->createMagentoTransaction($order, $result->result, $notification, $parent_transaction_id, $refund);
         }
         $apiClient->acknowledgeTransactionNotification();
-    }
-
-    protected function logRequest(){
-    	error_reporting(E_ERROR);
-    	ini_set("display_errors", 1);
-
-    	$objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-
-		/**
-		 * @var \Magento\Framework\App\Request\Http $req
-		 */
-    	$request = $objectManager->get('\Magento\Framework\App\Request\Http');
-    	$requestBody = $request->getContent();
-
-    	$data = sprintf(
-    		"%s %s %s\n",
-    		$_SERVER['REQUEST_METHOD'],
-    		$_SERVER['REQUEST_URI'],
-    		$_SERVER['SERVER_PROTOCOL']
-    	);
-
-    	$headerList = [];
-    	foreach ($_SERVER as $name => $value) {
-    		if (preg_match('/^HTTP_/',$name)) {
-    			// convert HTTP_HEADER_NAME to Header-Name
-    			$name = strtr(substr($name,5),'_',' ');
-    			$name = ucwords(strtolower($name));
-    			$name = strtr($name,' ','-');
-    			// add to list
-    			$headerList[$name] = $value;
-    		}
-    	}
-
-    	foreach ($headerList as $name => $value) {
-    		$data .= $name . ': ' . $value . "\n";
-    	}
-    	$data .= "\n" . $requestBody . "\n";
-
-    	$targetFile = getcwd() . DIRECTORY_SEPARATOR . "var"  . DIRECTORY_SEPARATOR . "log"  . DIRECTORY_SEPARATOR .  "http_req_" . date("Y-m-d_H:i:s") . "-" . substr(md5($data . time()), 0, 8) . ".log";
-
-    	file_put_contents(
-    		$targetFile,
-    		$data
-    	);
-
     }
 
 }
