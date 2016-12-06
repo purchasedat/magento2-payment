@@ -26,7 +26,6 @@ class Notification extends \Magento\Framework\App\Action\Action
     ) {
         $this->_patModel = $patModel;
         parent::__construct($context);
-       $this->logRequest();
     }
 
     /**
