@@ -161,7 +161,7 @@ class Finish extends \Magento\Framework\View\Element\Template
         $order_id = -1 ;
         $quote = $this->_cart->getQuote();
         $api_key = $this->_helper->getConfig('payment/purchasedat/api_key');
-        $apiClient = new Sdk\APIClient($api_key);
+        $apiClient = new APIClient($api_key);
 
 // verify the redirect comes from purchased.at
 // and fetch the corresponding transaction
@@ -226,7 +226,7 @@ class Finish extends \Magento\Framework\View\Element\Template
 // pending transactions are awaiting payment
 // and can become successful later
                 if( $transaction->getState() == 'pending' ) {
-                    $result_message = 'We received your order, but are still ' .
+                    $result_message = 'We received your order, but we are still ' .
                         'waiting for confirmation of the payment.<br>';
                     $order->setStatus(Order::STATE_PENDING_PAYMENT) ;               //!!!!!!!!!!!!!!!!!!!!!!!!!
                 }
