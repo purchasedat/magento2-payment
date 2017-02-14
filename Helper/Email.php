@@ -9,6 +9,7 @@ use Magento\Store\Model\Store;
 class Email extends \Magento\Framework\App\Helper\AbstractHelper
 {
     const XML_PATH_EMAIL_TEMPLATE_FIELD  = 'payment/purchasedat/payment_failed_template';
+//    const XML_PATH_EMAIL_TEMPLATE_FIELD  = 'checkout/payment_failed/template';
 
     /**
      * @var \Magento\Framework\App\Config\ScopeConfigInterface
@@ -36,7 +37,7 @@ class Email extends \Magento\Framework\App\Helper\AbstractHelper
      * @var \Magento\Framework\Stdlib\DateTime\TimezoneInterface
      */
     protected $_localeDate;
-
+    
 
     /**
      * @param Magento\Framework\App\Helper\Context $context
@@ -104,7 +105,6 @@ class Email extends \Magento\Framework\App\Helper\AbstractHelper
      * @param  \Magento\Quote\Model\Quote $checkout
      * @return void
      */
-    /* your send mail method*/
     public function mailSendMethod($transactionVariables, $checkout)
     {
         $this->inlineTranslation->suspend();
@@ -152,10 +152,31 @@ class Email extends \Magento\Framework\App\Helper\AbstractHelper
                 $sendTo[] = ['email' => $email, 'name' => null];
             }
         }
-        $shippingMethod = '';
-        if ($shippingInfo = $checkout->getShippingAddress()->getShippingMethod()) {
-            $data = explode('_', $shippingInfo);
-            $shippingMethod = $data[0];
+        $shippingAddress = "" ;
+        $shippingAddressObj = $checkout->getShippingAddress();
+        if ($shippingAddressObj != null) {
+            $shippingAddress = $shippingAddressObj->getName() . ", " ;
+            $streetLines = $shippingAddressObj->getStreet();
+            foreach ($streetLines as $lineNumber => $lineValue) {
+                $shippingAddress .= $lineValue . " " ;
+            }
+            $shippingAddress .= $shippingAddressObj->getCity() . ", " . $shippingAddressObj->getPostcode() . ", " . $shippingAddressObj->getCountryId() ;
+        }
+
+        $billingAddress = "" ;
+        $billingAddressObj = $checkout->getBillingAddress();
+        if ($billingAddressObj != null) {
+            if ($billingAddressObj->getCompany() != "") {
+                $billingAddress = $billingAddressObj->getCompany() . ", ";
+            }
+            else {
+                $billingAddress = $billingAddressObj->getName() . ", ";
+            }
+            $streetLines = $billingAddressObj->getStreet();
+            foreach ($streetLines as $lineNumber => $lineValue) {
+                $billingAddress .= $lineValue . " " ;
+            }
+            $billingAddress .= $billingAddressObj->getCity() . ", " . $billingAddressObj->getPostcode() . ", " . $billingAddressObj->getCountryId() ;
         }
 
         $paymentMethod = '';
@@ -184,6 +205,7 @@ class Email extends \Magento\Framework\App\Helper\AbstractHelper
                 ]
             )->setTemplateVars(
                 [
+                    'orderId' => $checkout->getRealOrderId(),
                     'patTransId' => $transactionVariables['transactionID'],
                     'patTransState' => $transactionVariables['transactionState'],
                     'patTestMode' => $transactionVariables['transactionTest'],
@@ -194,12 +216,9 @@ class Email extends \Magento\Framework\App\Helper\AbstractHelper
                     ),
                     'customer' => $checkout->getCustomerFirstname() . ' ' . $checkout->getCustomerLastname(),
                     'customerEmail' => $checkout->getCustomerEmail(),
-                    'billingAddress' => $checkout->getBillingAddress(),
-                    'shippingAddress' => $checkout->getShippingAddress(),
-                    'shippingMethod' => $this->scopeConfig->getValue(
-                        'carriers/' . $shippingMethod . '/title',
-                        \Magento\Store\Model\ScopeInterface::SCOPE_STORE
-                    ),
+                    'billingAddress' => $billingAddress,
+                    'shippingAddress' => $shippingAddress,
+                    'shippingMethod' => $checkout->getShippingDescription(),
                     'paymentMethod' => $this->scopeConfig->getValue(
                         'payment/' . $paymentMethod . '/title',
                         \Magento\Store\Model\ScopeInterface::SCOPE_STORE

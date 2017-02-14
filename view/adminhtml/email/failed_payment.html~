@@ -6,7 +6,6 @@
 -->
 <!--@subject {{trans "Payment Transaction Failed Reminder"}} @-->
 <!--@vars {
-"var orderId":"Order ID",
 "var billingAddress.format('html')|raw":"Billing Address",
 "var checkoutType":"Checkout Type",
 "var customerEmail":"Customer Email",
@@ -25,10 +24,6 @@
 <h1>{{trans "Payment Transaction Failed"}}</h1>
 
 <ul>
-    <li>
-        <b>{{trans "Order ID"}}</b><br />
-        {{var orderId}}
-    </li>
     <li>
         <b>{{trans "Purchased.at transaction ID"}}</b><br />
         {{var patTransId}}

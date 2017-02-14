@@ -19,6 +19,20 @@ class Finish extends \Magento\Framework\App\Action\Action
         $this->resultPageFactory = $resultPageFactory;
         parent::__construct($context);
     }
+
+    /**
+     * Get custom session data
+     * @param $key
+     * @param bool $remove
+     * @return mixed
+     */
+    public function getSessionData($key, $remove = false)
+    {
+        $om = \Magento\Framework\App\ObjectManager::getInstance();
+        $catalogSession = $om->create('Magento\Catalog\Model\Session');
+        return $catalogSession->getData($key, $remove);
+    }
+
     /**
      * Load the page defined in view/frontend/layout/purchasedat_payment_finish.xml
      *

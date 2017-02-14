@@ -1,6 +1,8 @@
 <?php
 namespace PurchasedAt\Magento2Payment\Controller\Ajaxdata;
 
+use Magento\Sales\Model\Order;
+
 /**
  * Return data in json format
  */
@@ -58,6 +60,19 @@ class Index extends \Magento\Framework\App\Action\Action
     }
 
     /**
+     * Set custom session data
+     * @param $key
+     * @param $value
+     * @return mixed
+     */
+    public function setSessionData($key, $value)
+    {
+        $om = \Magento\Framework\App\ObjectManager::getInstance();
+        $catalogSession = $om->create('\Magento\Catalog\Model\Session');
+        return $catalogSession->setData($key, $value);
+    }
+
+    /**
      * Show / return the token and target info from the script that is rendered by purchased.at SDK
      * To set up our Magento 2 javascript function what run the purchased.at widget javascript, we need the token and the target info
      * @return \Magento\Framework\Controller\Result\Json
@@ -69,18 +84,61 @@ class Index extends \Magento\Framework\App\Action\Action
         $quote= $this->_cart->getQuote();
         $request = $this->getRequest();
         $guest_email = $request->getParam("email");
-        $data = $this->_patModel->getPostData($quote, $guest_email) ;
+        $data = $this->_patModel->getPostData($quote, $guest_email);
         if ($data) {
-            $this->button_code = $this->_patModel->renderScript($data["apiKey"], $data["options"]) ;
-            $token = $this->getPayButtonParams() ;
-            $target = $this->getPayButtonTarget() ;
+            $this->button_code = $this->_patModel->renderScript($data["apiKey"], $data["options"]);
+            $token = $this->getPayButtonParams();
+            $target = $this->getPayButtonTarget();
             $result->setData(['token' => $token, 'target' => $target]);
+            $this->setSessionData("button_token", $token) ;
+            $this->setSessionData("button_target", $target) ;
+        } else {
+            $result->setData(['Error' => "Error happened!"]);
         }
-        else
-        {
-            $result->setData(['Error' => "Error happened!"]) ;
+        if ($quote != null) {
+            $this->createOrder($quote, $guest_email);
         }
         return $result;
+    }
+
+    /**
+     * Save quote to order
+     * @param $quote
+     * @param $guest_email
+     * @return int
+     */
+    protected function createOrder($quote, $guest_email = "") {
+        $quote->setPaymentMethod('purchasedat'); //payment method
+        $om = \Magento\Framework\App\ObjectManager::getInstance();
+        $customerSession = $om->get('\Magento\Customer\Model\Session');
+        if(!$customerSession->isLoggedIn()) {
+            $quote->setCustomerId(null)
+                ->setCustomerEmail($guest_email)
+                ->setCustomerIsGuest(true)
+                ->setCustomerGroupId(\Magento\Customer\Model\Group::NOT_LOGGED_IN_ID);
+        }
+        $quote->save(); //Now Save quote and your quote is ready
+
+        // Set Sales Order Payment
+        $quote->getPayment()->importData(['method' => 'purchasedat']);
+
+        // Collect Totals & Save Quote
+        $quote->collectTotals()->save();
+
+        $quoteManagement = $om->create('\Magento\Quote\Model\QuoteManagement');
+        $order = $quoteManagement->submit($quote);
+        $order_id = -1;
+        if ($order != null) {
+            $order->setEmailSent(0);
+            if ($order->getEntityId()) {
+                $order_id = $order->getRealOrderId();
+            } else {
+                $order_id = -1;
+            }
+            $order->setStatus(Order::STATE_PENDING_PAYMENT) ;
+            $order->save();
+        }
+        return $order_id ;
     }
 
     /**

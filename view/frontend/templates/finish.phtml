@@ -7,6 +7,28 @@
     $transaction_extra_data = $block->getTransactionExtraData();
     $transaction_details_titles = $block->getTransactionDetailsTitle();
 ?>
+<script type="text/x-magento-init">
+    {
+        "*" : {
+             "purchased_at":
+                    {
+                    }
+        }
+    }
+</script>
+<script>
+    function retry() {
+        var params="<?php echo $block->getSessionData("button_token");?>" ;
+        var target="<?php echo $block->getSessionData("button_target");?>" ;
+        var params_array = {token: params, target: target};
+        purchased_at.auto(params_array);
+    }
+    require(['domReady', 'purchased_at'], function (domReady) {
+        domReady(function () {
+            retry();
+        });
+    });
+</script>
 <div class="Purchasedat-finish">
     <?php
     $error_message = $block->getErrorMessage();
@@ -18,7 +40,7 @@
         <div class="actions-toolbar">
             <div class="primary">
                 <a class="action primary continue" href="<?php /* @escapeNotVerified */ echo $block->getUrl() ?>"><span><?php /* @escapeNotVerified */ echo __('Continue Shopping') ?></span></a>
-                <a class="action primary continue" href="<?php echo $block->getUrl('checkout', ['_secure' => true]); ?>"><span><?php /* @escapeNotVerified */ echo __('Proceed to Checkout') ?></span></a>
+                <a class="action primary continue retry" data-purchasedat-widget-open="data-purchasedat-widget-open" href="javascript:;" onclick="retry();"><span><?php /* @escapeNotVerified */ echo __('Retry payment') ?></span></a>
             </div>
         </div>
         <?php

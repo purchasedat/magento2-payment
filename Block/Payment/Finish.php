@@ -129,6 +129,19 @@ class Finish extends \Magento\Framework\View\Element\Template
     }
 
     /**
+     * Set custom session data
+     * @param $key
+     * @param $value
+     * @return mixed
+     */
+    public function getSessionData($key, $clear = false)
+    {
+        $om = \Magento\Framework\App\ObjectManager::getInstance();
+        $catalogSession = $om->create('\Magento\Catalog\Model\Session');
+        return $catalogSession->getData($key, $clear);
+    }
+
+    /**
      * Send an e-mail to the administrator about the failed transaction
      * @param \Magento\Quote\Model\Quote $checkout
      * @param object $transaction_details
@@ -158,14 +171,17 @@ class Finish extends \Magento\Framework\View\Element\Template
      */
     protected function prepareBlockData()
     {
-        $order_id = -1 ;
-        $quote = $this->_cart->getQuote();
         $api_key = $this->_helper->getConfig('payment/purchasedat/api_key');
         $apiClient = new APIClient($api_key);
 
 // verify the redirect comes from purchased.at
 // and fetch the corresponding transaction
         $result = $apiClient->fetchTransactionForRedirect();
+        $magento_transaction_id = $result->result->getExternalId() ;
+
+        $order_id = substr($magento_transaction_id, 0, strpos($magento_transaction_id, "-")) ;
+        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+        $order = $objectManager->create('Magento\Sales\Model\Order')->loadByIncrementId($order_id);
 
         $error_message = "" ;
         $result_message = "" ;
@@ -188,7 +204,8 @@ class Finish extends \Magento\Framework\View\Element\Template
                 if ($transaction->isTest()) {
                     $error_message .= "<br><strong>This was a TEST transaction</strong><br />" ;
                 }
-                $this->sendTransactionEmail($quote, $transaction);
+
+                $this->sendTransactionEmail($order, $transaction);
             }
             else
             {
@@ -196,32 +213,6 @@ class Finish extends \Magento\Framework\View\Element\Template
                 $customer = $transaction->getCustomer();
                 $price    = $transaction->getPrice();
 
-// Save quote to order
-
-                $quote->setPaymentMethod('purchasedat'); //payment method
-                $om = \Magento\Framework\App\ObjectManager::getInstance();
-                $customerSession = $om->get('Magento\Customer\Model\Session');
-                if(!$customerSession->isLoggedIn()) {
-                    $quote->setCustomerId(null)
-                        ->setCustomerEmail($customer->getEmail())
-                        ->setCustomerIsGuest(true)
-                        ->setCustomerGroupId(\Magento\Customer\Model\Group::NOT_LOGGED_IN_ID);
-                }
-                $quote->save(); //Now Save quote and your quote is ready
-
-                // Set Sales Order Payment
-                $quote->getPayment()->importData(['method' => 'purchasedat']);
-
-                // Collect Totals & Save Quote
-                $quote->collectTotals()->save();
-                $order = $this->_quoteManagement->submit($quote);
-                $order->setEmailSent(0);
-                if($order->getEntityId()){
-                    $order_id = $order->getRealOrderId();
-                } else {
-                    $order_id =-1;
-                }
-                $this->orderSender->send($order);
 
 // pending transactions are awaiting payment
 // and can become successful later
@@ -247,6 +238,7 @@ class Finish extends \Magento\Framework\View\Element\Template
                     $result_message .= "<br><strong>This was a TEST transaction</strong><br />" ;
                 }
                 $this->_patModel->createMagentoTransaction($order, $result->result) ;
+                $this->orderSender->send($order);
             }
         }
         $this->addData(
