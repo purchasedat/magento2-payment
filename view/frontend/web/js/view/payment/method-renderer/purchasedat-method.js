@@ -27,6 +27,24 @@ define(
              * @returns {*}
              */
             getInstructions: function() {
+                $.ajax({
+                    url: window.checkoutConfig.payment.purchasedat.ajax_url,
+                    data: {"email": quote.guestEmail, "prepare": "1"},
+                    cache: false,
+                    dataType: 'json'
+                }).done(function (data) {
+                    var params = data.token;
+                    var target_string = data.target;
+                    if (params != "") {
+                        var params_array = {token: params, target: target_string};
+                        purchased_at.auto(params_array);
+                    }
+                    else {
+                        alert("Error in purchased.at service call, get empty params field");
+                    }
+                }).fail(function () {
+                    alert("Error in ajax call: " + window.checkoutConfig.payment.purchasedat.ajax_url + "?email=" + quote.guestEmail);
+                });
                 return window.checkoutConfig.payment.purchasedat.instructions;
             },
 

@@ -84,6 +84,7 @@ class Index extends \Magento\Framework\App\Action\Action
         $quote= $this->_cart->getQuote();
         $request = $this->getRequest();
         $guest_email = $request->getParam("email");
+        $prepare = $request->getParam("prepare");
         $data = $this->_patModel->getPostData($quote, $guest_email);
         if ($data) {
             $this->button_code = $this->_patModel->renderScript($data["apiKey"], $data["options"]);
@@ -95,7 +96,7 @@ class Index extends \Magento\Framework\App\Action\Action
         } else {
             $result->setData(['Error' => "Error happened!"]);
         }
-        if ($quote != null) {
+        if ($quote != null && $prepare != "1") {
             $this->createOrder($quote, $guest_email);
         }
         return $result;
