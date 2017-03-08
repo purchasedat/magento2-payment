@@ -65,6 +65,19 @@ class Index extends \Magento\Framework\App\Action\Action
      * @param $value
      * @return mixed
      */
+    public function getSessionData($key, $clear = false)
+    {
+        $om = \Magento\Framework\App\ObjectManager::getInstance();
+        $catalogSession = $om->create('\Magento\Catalog\Model\Session');
+        return $catalogSession->getData($key, $clear);
+    }
+
+    /**
+     * Set custom session data
+     * @param $key
+     * @param $value
+     * @return mixed
+     */
     public function setSessionData($key, $value)
     {
         $om = \Magento\Framework\App\ObjectManager::getInstance();
@@ -86,7 +99,10 @@ class Index extends \Magento\Framework\App\Action\Action
         $guest_email = $request->getParam("email");
         $prepare = $request->getParam("prepare");
         $data = $this->_patModel->getPostData($quote, $guest_email);
-        if ($data) {
+        $token_session = $this->getSessionData('button_token') ;
+        if (!$data && $token_session != "") {
+            $result->setData(['token' => $token_session, 'target' => $this->getSessionData("button_target")]);
+        } else if ($data) {
             $this->button_code = $this->_patModel->renderScript($data["apiKey"], $data["options"]);
             $token = $this->getPayButtonParams();
             $target = $this->getPayButtonTarget();

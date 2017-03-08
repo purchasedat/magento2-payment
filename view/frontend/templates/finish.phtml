@@ -46,6 +46,8 @@
         <?php
     } else
     {
+        $block->getSessionData("button_token", true);
+        $block->getSessionData("button_target", true);
         ?>
         <h1><?php echo __( 'Thank you for shopping with us!' ) ?></h1>
 
