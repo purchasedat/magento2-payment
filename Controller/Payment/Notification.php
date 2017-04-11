@@ -45,7 +45,8 @@ class Notification extends \Magento\Framework\App\Action\Action
 
         if(!$result->success) {
             error_log(sprintf('failed to process notification: %s',$result->errorCode));
-            die('failed to handle request');
+            echo ('failed to handle request');
+            exit;
         }
 
         $notification = $result->result;

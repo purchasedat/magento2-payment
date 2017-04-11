@@ -1,5 +1,5 @@
 {
-  "name" : "purchased-at/magento2-payment",
+  "name" : "purchasedat/magento2-payment",
   "description" : "Purchased.AT payment module for Magento 2.x",
   "version" : "1.0.10",
   "require" : {
