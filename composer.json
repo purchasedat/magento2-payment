@@ -1,5 +1,5 @@
 {
-  "name" : "purchasedat/magento2-payment",
+  "name" : "purchased-at/magento2-payment",
   "description" : "Purchased.AT payment module for Magento 2.x",
   "version" : "1.0.10",
   "require" : {
@@ -16,13 +16,9 @@
     "magento/module-directory" : "100.1.*",
     "magento/module-theme" : "100.1.*",
     "magento/framework" : "100.1.*",
-    "magento/magento-composer-installer" : "*",
     "purchased-at/sdk-php" : "1.3.*"
   },
   "license" : [ "OSL-3.0" ],
-  "extra" : {
-    "map" : [ [ "*", "PurchasedAt\\Magento2Payment\\" ] ]
-  },
   "autoload" : {
     "psr-4" : {
       "PurchasedAt\\Magento2Payment\\" : ""
