@@ -1,7 +1,7 @@
 {
 	"name" : "purchasedat/magento2-payment",
 	"description" : "Purchased.AT payment module for Magento 2.x",
-	"version" : "1.0.20",
+	"version" : "1.0.21",
 	"require" : {
 		"php" : "~5.5.0|~5.6.0|~7.0.0",
 		"magento/module-config" : "100.0.*",
@@ -13,7 +13,7 @@
 		"magento/module-payment" : "100.0.*",
 		"magento/module-quote" : "100.0.*",
 		"magento/module-backend" : "100.0.*",
-		"magento/module-directory" : "100.0.*",
+		"magento/module-directory" : "100.*",
 		"magento/module-theme" : "100.*",
 		"magento/framework" : "100.*",
 		"purchased-at/sdk-php" : "1.3.*"
