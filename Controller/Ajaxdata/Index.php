@@ -68,8 +68,8 @@ class Index extends \Magento\Framework\App\Action\Action
     public function getSessionData($key, $clear = false)
     {
         $om = \Magento\Framework\App\ObjectManager::getInstance();
-        $catalogSession = $om->create('\Magento\Catalog\Model\Session');
-        return $catalogSession->getData($key, $clear);
+        $checkoutSession = $om->create('\Magento\Checkout\Model\Session');
+        return $checkoutSession->getData($key, $clear);
     }
 
     /**
@@ -81,8 +81,8 @@ class Index extends \Magento\Framework\App\Action\Action
     public function setSessionData($key, $value)
     {
         $om = \Magento\Framework\App\ObjectManager::getInstance();
-        $catalogSession = $om->create('\Magento\Catalog\Model\Session');
-        return $catalogSession->setData($key, $value);
+        $checkoutSession = $om->create('\Magento\Checkout\Model\Session');
+        return $checkoutSession->setData($key, $value);
     }
 
     /**

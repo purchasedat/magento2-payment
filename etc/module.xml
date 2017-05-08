@@ -8,7 +8,7 @@
   <module name="PurchasedAt_Magento2Payment" setup_version="2.0.0">
     <sequence>
       <module name="Magento_Store"/>
-      <module name="Magento_Catalog"/>
+      <module name="Magento_Checkout"/>
     </sequence>
   </module>
 </config>
