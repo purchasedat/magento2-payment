@@ -23,6 +23,8 @@ Make sure your Magento 2.x installation is completed via composer or the web bas
   	./vendor/composer/composer/bin/composer update && \
   	./vendor/composer/composer/bin/composer install && \
   	./bin/magento setup:upgrade && \
+  	./bin/magento setup:di:compile && \
+  	./bin/magento cache:flush config && \
   	./bin/magento setup:static-content:deploy
   	```
 	> Make sure you use the Magento bundled `composer`. If you would like to run it without `php -f` like above, make sure the binary has `u+x` privileges. Same applies to the `magento` binary, make it `u+x` if needed.
